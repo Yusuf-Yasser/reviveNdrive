@@ -84,7 +84,7 @@ const SignUp = () => {
     try {
       await signup(formData);
       // Redirect to home page after successful registration
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       setGeneralError('Registration failed. Please try again.');
       console.error('Signup error:', error);

@@ -81,8 +81,8 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
       setIsLoading(false);
       if (response.ok && data.status === 'success') {
-        setCurrentUser(data.user);
-        return data.user;
+        // setCurrentUser(data.user); // Prevent auto-login after signup
+        return data.user; // User created, redirect to login
       } else {
         throw new Error(data.message || 'Signup failed');
       }
