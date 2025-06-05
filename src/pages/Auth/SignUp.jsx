@@ -2,9 +2,21 @@ import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { Mail, Lock, User, Eye, EyeOff, Phone, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Phone, AlertCircle, Briefcase, MapPin, Users } from 'lucide-react';
 
 const SignUp = () => {
+  const egyptianGovernorates = [
+    'Alexandria', 'Aswan', 'Asyut', 'Beheira', 'Beni Suef', 'Cairo', 'Dakahlia', 'Damietta', 
+    'Faiyum', 'Gharbia', 'Giza', 'Ismailia', 'Kafr El Sheikh', 'Luxor', 'Matrouh', 'Minya', 
+    'Monufia', 'New Valley', 'North Sinai', 'Port Said', 'Qalyubia', 'Qena', 'Red Sea', 
+    'Sharqia', 'Sohag', 'South Sinai', 'Suez'
+  ];
+
+  const mechanicSpecialties = [
+    'Engine Repair', 'Transmission Services', 'Brake Systems', 'Suspension and Steering', 
+    'Electrical Systems', 'Air Conditioning (AC) Repair', 'Tire Services', 
+    'Exhaust Systems', 'Diagnostics', 'General Maintenance'
+  ];
   const { isDarkMode } = useContext(ThemeContext);
   const { signup, isLoading } = useAuth();
   const navigate = useNavigate();
@@ -13,6 +25,9 @@ const SignUp = () => {
     fullName: '',
     email: '',
     phone: '',
+    userType: 'normal_user', // Default to normal_user
+    specialty: '', // Will hold selected specialty
+    location: '', // Will hold selected governorate
     password: '',
     confirmPassword: '',
     termsAccepted: false
@@ -50,8 +65,24 @@ const SignUp = () => {
       newErrors.email = 'Email is invalid';
     }
     
-    if (!formData.phone) {
+    // Assuming phone is required based on original code
+    if (!formData.phone) { 
       newErrors.phone = 'Phone number is required';
+    }
+
+    // User type validation (though it has a default)
+    if (!formData.userType) {
+        newErrors.userType = 'Please select an account type.';
+    }
+
+    // Conditional validation for mechanic fields
+    if (formData.userType === 'mechanic') {
+      if (!formData.specialty.trim()) {
+        newErrors.specialty = 'Specialty is required for mechanics.';
+      }
+      if (!formData.location.trim()) {
+        newErrors.location = 'Location is required for mechanics.';
+      }
     }
     
     if (!formData.password) {
@@ -193,6 +224,105 @@ const SignUp = () => {
             </div>
             {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
           </div>
+
+          {/* User Type Select */}
+          <div>
+            <label 
+              htmlFor="userType" 
+              className="block text-sm font-medium mb-2"
+            >
+              Account Type
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Users size={18} className="text-gray-400" />
+              </div>
+              <select
+                id="userType"
+                name="userType"
+                value={formData.userType}
+                onChange={handleChange}
+                className={`w-full pl-10 pr-3 py-2 rounded-lg border ${
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                } ${errors.userType ? 'border-red-500' : ''} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              >
+                <option value="normal_user">Normal User</option>
+                <option value="mechanic">Mechanic</option>
+              </select>
+            </div>
+            {errors.userType && <p className="mt-1 text-sm text-red-500">{errors.userType}</p>}
+          </div>
+
+          {/* Conditional Mechanic Fields */}
+          {formData.userType === 'mechanic' && (
+            <>
+              {/* Specialty Input */}
+              <div>
+                <label 
+                  htmlFor="specialty" 
+                  className="block text-sm font-medium mb-2"
+                >
+                  Specialty
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Briefcase size={18} className="text-gray-400" />
+                  </div>
+                  <select
+                    id="specialty"
+                    name="specialty"
+                    value={formData.specialty}
+                    onChange={handleChange}
+                    className={`w-full pl-10 pr-3 py-2 rounded-lg border ${
+                      isDarkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white' 
+                        : 'bg-white border-gray-300 text-gray-900'
+                    } ${errors.specialty ? 'border-red-500' : ''} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  >
+                    <option value="">Select Specialty</option>
+                    {mechanicSpecialties.map(spec => (
+                      <option key={spec} value={spec}>{spec}</option>
+                    ))}
+                  </select>
+                </div>
+                {errors.specialty && <p className="mt-1 text-sm text-red-500">{errors.specialty}</p>}
+              </div>
+
+              {/* Location Input */}
+              <div>
+                <label 
+                  htmlFor="location" 
+                  className="block text-sm font-medium mb-2"
+                >
+                  Location (Workshop Address / Service Area)
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <MapPin size={18} className="text-gray-400" />
+                  </div>
+                  <select
+                    id="location"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    className={`w-full pl-10 pr-3 py-2 rounded-lg border ${
+                      isDarkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white' 
+                        : 'bg-white border-gray-300 text-gray-900'
+                    } ${errors.location ? 'border-red-500' : ''} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  >
+                    <option value="">Select Governorate</option>
+                    {egyptianGovernorates.map(gov => (
+                      <option key={gov} value={gov}>{gov}</option>
+                    ))}
+                  </select>
+                </div>
+                {errors.location && <p className="mt-1 text-sm text-red-500">{errors.location}</p>}
+              </div>
+            </>
+          )}
 
           <div>
             <label 

@@ -25,6 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $data['email'] ?? null;
     $password = $data['password'] ?? null;
     $phone = $data['phone'] ?? null;
+    $userType = $data['userType'] ?? 'normal_user'; // Default from frontend if not set
+    $specialty = $data['specialty'] ?? null;
+    $location = $data['location'] ?? null;
 
     // Basic validation
     if (empty($fullName) || empty($email) || empty($password)) {
@@ -37,6 +40,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         http_response_code(400);
         echo json_encode(['status' => 'error', 'message' => 'Invalid email format.']);
         exit();
+    }
+
+    // User Type validation
+    if (!in_array($userType, ['normal_user', 'mechanic'])) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Invalid user type specified.']);
+        exit();
+    }
+
+    // Conditional validation for mechanic fields (backend check)
+    if ($userType === 'mechanic') {
+        if (empty($specialty)) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'Specialty is required for mechanic accounts.']);
+            exit();
+        }
+        if (empty($location)) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'Location is required for mechanic accounts.']);
+            exit();
+        }
     }
 
     // Check if email already exists
@@ -60,49 +84,81 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Default avatar (optional)
     $defaultAvatar = 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
 
-    // Insert user into database
-    $stmt = $conn->prepare("INSERT INTO users (fullName, email, password, phone, avatar) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssss", $fullName, $email, $hashedPassword, $phone, $defaultAvatar);
+    // Start transaction
+    $conn->begin_transaction();
 
-    if ($stmt->execute()) {
-        $userId = $stmt->insert_id;
-        // Start session and store user info
+    try {
+        // Insert user into users table
+        $stmtUser = $conn->prepare("INSERT INTO users (fullName, email, password, phone, avatar, user_type) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmtUser->bind_param("ssssss", $fullName, $email, $hashedPassword, $phone, $defaultAvatar, $userType);
+
+        if (!$stmtUser->execute()) {
+            throw new Exception("Error inserting user data: " . $stmtUser->error);
+        }
+        $userId = $stmtUser->insert_id;
+        $stmtUser->close();
+
+        // If user is a mechanic, insert into mechanics table
+        if ($userType === 'mechanic') {
+            $stmtMechanic = $conn->prepare("INSERT INTO mechanics (user_id, specialty, location) VALUES (?, ?, ?)");
+            $stmtMechanic->bind_param("iss", $userId, $specialty, $location);
+            if (!$stmtMechanic->execute()) {
+                throw new Exception("Error inserting mechanic details: " . $stmtMechanic->error);
+            }
+            $stmtMechanic->close();
+        }
+
+        // Commit transaction
+        $conn->commit();
+
+        // Session handling is commented out as per no-auto-login requirement (Memory d1e170a6...)
+        /*
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
         $_SESSION['user_id'] = $userId;
         $_SESSION['user_email'] = $email;
         $_SESSION['user_fullName'] = $fullName;
+        */
 
         http_response_code(201); // Created
-        // Forcefully set CORS headers just before sending response
-        header_remove('Access-Control-Allow-Credentials'); // Remove if it exists
-        header('Access-Control-Allow-Origin: http://localhost:5173', true); // Overwrite
-        header('Access-Control-Allow-Credentials: true', true); // Overwrite
-        header('Content-Type: application/json', true); // Overwrite
-        
-        // Attempt to flush output buffer if active
+        header_remove('Access-Control-Allow-Credentials');
+        header('Access-Control-Allow-Origin: http://localhost:5173', true);
+        header('Access-Control-Allow-Credentials: true', true);
+        header('Content-Type: application/json', true);
         if (ob_get_level() > 0) {
             ob_end_flush();
         }
         
+        $userDataResponse = [
+            'id' => $userId,
+            'fullName' => $fullName, // Changed from 'name' for consistency
+            'email' => $email,
+            'phone' => $phone,
+            'avatar' => $defaultAvatar,
+            'userType' => $userType
+        ];
+        if ($userType === 'mechanic') {
+            $userDataResponse['specialty'] = $specialty;
+            $userDataResponse['location'] = $location;
+        }
+
         echo json_encode([
             'status' => 'success',
             'message' => 'User registered successfully.',
-            'user' => [
-                'id' => $userId,
-                'name' => $fullName, // Consistent with AuthContext
-                'email' => $email,
-                'phone' => $phone,
-                'avatar' => $defaultAvatar
-            ]
+            'user' => $userDataResponse
         ]);
-    } else {
-        http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'Registration failed. Please try again later. Error: ' . $stmt->error]);
-    }
 
-    $stmt->close();
+    } catch (Exception $e) {
+        $conn->rollback();
+        // Ensure statements are closed on error if they were prepared before exception
+        if (isset($stmtUser) && $stmtUser instanceof mysqli_stmt) $stmtUser->close();
+        if (isset($stmtMechanic) && $stmtMechanic instanceof mysqli_stmt) $stmtMechanic->close();
+        
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Registration failed: ' . $e->getMessage()]);
+    }
+    // Note: $conn->close() is handled at the end of the POST block in the original structure
     $conn->close();
 
 } else {
