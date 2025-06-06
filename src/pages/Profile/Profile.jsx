@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { User, Mail, Phone, Settings, LogOut, Shield, Car, CreditCard, History, BellRing, Trash2, Edit } from 'lucide-react';
+import { User, Mail, Phone, Settings, LogOut, Shield, Car, CreditCard, Trash2, Edit } from 'lucide-react';
 
 const Profile = () => {
   // Memories for dropdowns
@@ -322,106 +322,6 @@ const Profile = () => {
 );
   };
 
-  const HistoryTab = () => (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold">Service History</h3>
-      
-      <div className="overflow-x-auto">
-        <table className={`min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
-          <thead className={isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}>
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Service</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Provider</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Amount</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
-            </tr>
-          </thead>
-          <tbody className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
-            {(profileDetails?.serviceHistory || []).map((service) => (
-              <tr key={service.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium">{service.service}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm">{new Date(service.date).toLocaleDateString()}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm">{service.provider}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm">${service.amount.toFixed(2)}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    service.status === 'Completed' 
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' 
-                      : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'
-                  }`}>
-                    {service.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
-  const NotificationsTab = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Notifications</h3>
-        <button className="text-blue-600 hover:text-blue-700 transition-colors duration-200">
-          Mark all as read
-        </button>
-      </div>
-      
-      <div className="space-y-4">
-        {(profileDetails?.notifications || []).map((notification) => (
-          <div 
-            key={notification.id} 
-            className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-md 
-              ${notification.isRead ? '' : 'border-l-4 border-blue-600'}`}
-          >
-            <div className="flex justify-between">
-              <div className="flex items-start gap-3">
-                <div className={`p-2 rounded-full ${
-                  notification.type === 'Service Reminder' 
-                    ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100' 
-                    : notification.type === 'Promotion' 
-                      ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100' 
-                      : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100'
-                }`}>
-                  {notification.type === 'Service Reminder' ? (
-                    <BellRing size={18} />
-                  ) : notification.type === 'Promotion' ? (
-                    <CreditCard size={18} />
-                  ) : (
-                    <Settings size={18} />
-                  )}
-                </div>
-                <div>
-                  <p className="font-medium">{notification.type}</p>
-                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    {notification.message}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {new Date(notification.date).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-              {!notification.isRead && (
-                <div className="h-2 w-2 rounded-full bg-blue-600"></div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
   const SecurityTab = () => (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold">Security Settings</h3>
@@ -497,11 +397,6 @@ const Profile = () => {
     switch (activeTab) {
       case 'profile':
         return <ProfileTab />;
-
-      case 'history':
-        return <HistoryTab />;
-      case 'notifications':
-        return <NotificationsTab />;
       case 'security':
         return <SecurityTab />;
       default:
@@ -532,35 +427,6 @@ const Profile = () => {
                 </button>
               </li>
 
-              <li>
-                <button
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left ${
-                    activeTab === 'history' 
-                      ? 'bg-blue-600 text-white' 
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  } transition-colors duration-200`}
-                  onClick={() => setActiveTab('history')}
-                >
-                  <History size={20} />
-                  <span>Service History</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left ${
-                    activeTab === 'notifications' 
-                      ? 'bg-blue-600 text-white' 
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  } transition-colors duration-200`}
-                  onClick={() => setActiveTab('notifications')}
-                >
-                  <BellRing size={20} />
-                  <span>Notifications</span>
-                  <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    1
-                  </span>
-                </button>
-              </li>
               <li>
                 <button
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left ${
