@@ -170,6 +170,57 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Change Password function
+  const changePassword = async (currentPassword, newPassword) => {
+    if (!currentUser) throw new Error('User not authenticated');
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/change_password.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ userId: currentUser.id, currentPassword, newPassword }),
+      });
+      const data = await response.json();
+      setIsLoading(false);
+      if (response.ok && data.status === 'success') {
+        return data; // Or data.message
+      } else {
+        throw new Error(data.message || 'Failed to change password');
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Change password error:', error);
+      throw error;
+    }
+  };
+
+  // Delete Account function
+  const deleteAccount = async (password) => {
+    if (!currentUser) throw new Error('User not authenticated');
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/delete_account.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ userId: currentUser.id, password }), // Sending password for server-side confirmation
+      });
+      const data = await response.json();
+      setIsLoading(false);
+      if (response.ok && data.status === 'success') {
+        await logout(); // Logout the user on successful account deletion
+        return data; // Or data.message
+      } else {
+        throw new Error(data.message || 'Failed to delete account');
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Delete account error:', error);
+      throw error;
+    }
+  };
+
   const value = {
     currentUser,
     isLoading,
@@ -178,6 +229,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     getProfileData,
     updateProfileData,
+    changePassword,
+    deleteAccount,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -2,7 +2,174 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { User, Mail, Phone, Settings, LogOut, Shield, Car, CreditCard, Trash2, Edit } from 'lucide-react';
+import { User, Mail, Phone, Settings, LogOut, Shield, Car, CreditCard, Trash2, Edit, Key, AlertTriangle } from 'lucide-react';
+
+// Moved SecurityTab outside Profile to prevent input focus loss
+const SecurityTab = ({
+  isDarkMode,
+  passwordData,
+  handlePasswordChangeInput,
+  handleChangePasswordSubmit,
+  passwordChangeMessage,
+  localLoading,
+  handleDeleteAccountClick,
+  showDeleteConfirmModal,
+  handleConfirmDeleteAccount,
+  handleCancelDelete,
+  deleteConfirmPassword,
+  setDeleteConfirmPassword,
+  deleteAccountMessage,
+  activeTab,
+  KeyIcon, // Renamed to avoid conflict if Key is used as a prop name
+  AlertTriangleIcon // Renamed
+}) => {
+  return (
+    <div className="space-y-6">
+      <h3 className="text-lg font-semibold">Security Settings</h3>
+      
+      {/* Change Password Section */}
+      <div className={`p-6 rounded-xl shadow ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+        <h4 className="text-xl font-semibold mb-4 flex items-center">
+          <KeyIcon size={24} className="mr-2" /> Change Password
+        </h4>
+        <form onSubmit={handleChangePasswordSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="currentPassword" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Current Password</label>
+            <input 
+              type="password"
+              name="currentPassword"
+              id="currentPassword"
+              value={passwordData.currentPassword}
+              onChange={handlePasswordChangeInput}
+              className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 placeholder-gray-400'}`}
+              required 
+            />
+          </div>
+          <div>
+            <label htmlFor="newPassword" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>New Password</label>
+            <input 
+              type="password"
+              name="newPassword"
+              id="newPassword"
+              value={passwordData.newPassword}
+              onChange={handlePasswordChangeInput}
+              className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 placeholder-gray-400'}`}
+              required 
+            />
+          </div>
+          <div>
+            <label htmlFor="confirmNewPassword" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Confirm New Password</label>
+            <input 
+              type="password"
+              name="confirmNewPassword"
+              id="confirmNewPassword"
+              value={passwordData.confirmNewPassword}
+              onChange={handlePasswordChangeInput}
+              className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 placeholder-gray-400'}`}
+              required 
+            />
+          </div>
+          {passwordData.newPassword && passwordData.confirmNewPassword && passwordData.newPassword !== passwordData.confirmNewPassword && (
+            <p className="text-sm text-red-500 dark:text-red-400">New passwords do not match.</p>
+          )}
+          {passwordChangeMessage.text && (
+            <p className={`text-sm ${passwordChangeMessage.type === 'error' ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400'}`}>
+              {passwordChangeMessage.text}
+            </p>
+          )}
+          <button 
+            type="submit" 
+            disabled={localLoading || (passwordData.newPassword !== passwordData.confirmNewPassword)}
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {localLoading ? 'Saving...' : 'Save Password'}
+          </button>
+        </form>
+      </div>
+
+      {/* Danger Zone Section */}
+      <div className={`p-6 rounded-xl shadow ${isDarkMode ? 'bg-gray-700' : 'bg-red-50'}`}>
+        <h4 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2 flex items-center">
+          <AlertTriangleIcon size={24} className="mr-2" /> Danger Zone
+        </h4>
+        <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+          Once you delete your account, there is no going back. Please be certain.
+        </p>
+        <button 
+          onClick={handleDeleteAccountClick}
+          disabled={localLoading}
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Delete Account
+        </button>
+      </div>
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteConfirmModal && (
+        <div className="fixed z-50 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className={`fixed inset-0 transition-opacity ${isDarkMode ? 'bg-gray-900 bg-opacity-75' : 'bg-gray-500 bg-opacity-75'}`} aria-hidden="true"></div>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div className={`inline-block align-bottom rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
+              <div className={`px-4 pt-5 pb-4 sm:p-6 sm:pb-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <div className="sm:flex sm:items-start">
+                  <div className={`mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10 ${isDarkMode ? 'bg-red-700' : 'bg-red-100'}`}>
+                    <AlertTriangleIcon className={`h-6 w-6 ${isDarkMode ? 'text-red-300' : 'text-red-600'}`} aria-hidden="true" />
+                  </div>
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <h3 className={`text-lg leading-6 font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`} id="modal-title">
+                      Delete Account Confirmation
+                    </h3>
+                    <div className="mt-2">
+                      <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-500'} mb-3`}>
+                        Are you absolutely sure you want to delete your account? This action cannot be undone. All your data will be permanently lost.
+                      </p>
+                      <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-1`}>
+                        Please enter your password to confirm:
+                      </p>
+                      <input 
+                        type="password"
+                        name="deleteConfirmPassword"
+                        value={deleteConfirmPassword}
+                        onChange={(e) => setDeleteConfirmPassword(e.target.value)}
+                        className={`focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border rounded-md p-2 shadow-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 bg-white placeholder-gray-500'}`}
+                        placeholder="Enter your password"
+                        required
+                      />
+                       {deleteAccountMessage.text && (
+                        <p className={`mt-2 text-sm ${deleteAccountMessage.type === 'error' ? 'text-red-400' : 'text-green-400'}`}>
+                          {deleteAccountMessage.text}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className={`px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse ${isDarkMode ? 'bg-gray-800 border-t border-gray-700' : 'bg-gray-50'}`}>
+                <button
+                  type="button"
+                  disabled={localLoading}
+                  onClick={handleConfirmDeleteAccount}
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {localLoading && activeTab === 'security' && showDeleteConfirmModal ? 'Deleting...' : 'Yes, Delete My Account'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelDelete}
+                  disabled={localLoading}
+                  className={`mt-3 w-full inline-flex justify-center rounded-md border shadow-sm px-4 py-2 text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600 focus:ring-gray-500' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-indigo-500'}`}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Profile = () => {
   // Memories for dropdowns
@@ -10,7 +177,7 @@ const Profile = () => {
   const mechanicSpecialties = ["Engine Repair", "Transmission Services", "Brake Systems", "Suspension and Steering", "Electrical Systems", "Air Conditioning (AC) Repair", "Tire Services", "Exhaust Systems", "Diagnostics", "General Maintenance"];
 
   const { isDarkMode } = useContext(ThemeContext);
-  const { currentUser, logout, getProfileData, updateProfileData, isLoading: authIsLoading } = useAuth();
+  const { currentUser, logout, getProfileData, updateProfileData, changePassword, deleteAccount, isLoading: authIsLoading } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [profileDetails, setProfileDetails] = useState(null);
@@ -23,6 +190,16 @@ const Profile = () => {
     specialty: '',
     location: ''
   });
+
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmNewPassword: '',
+  });
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [passwordChangeMessage, setPasswordChangeMessage] = useState({ type: '', text: '' });
+  const [deleteAccountMessage, setDeleteAccountMessage] = useState({ type: '', text: '' });
+  const [deleteConfirmPassword, setDeleteConfirmPassword] = useState('');
 
   // Redirect to login page if not authenticated
   useEffect(() => {
@@ -50,6 +227,16 @@ const Profile = () => {
       fetchProfile();
     }
   }, [currentUser, navigate, getProfileData]);
+
+  // Clear security-related messages when the security tab is activated
+  useEffect(() => {
+    if (activeTab === 'security') {
+      setPasswordChangeMessage({ type: '', text: '' });
+      setDeleteAccountMessage({ type: '', text: '' });
+      // Optionally, reset localLoading if it's specific to security tab operations
+      // and not general profile loading, but current setup seems fine.
+    }
+  }, [activeTab]);
 
   const handleLogout = () => {
     logout();
@@ -119,6 +306,72 @@ const Profile = () => {
       // toast.error(error.message || "Could not update profile.");
     }
     setLocalLoading(false);
+  };
+
+  const handlePasswordChangeInput = (e) => {
+    const { name, value } = e.target;
+    setPasswordData(prev => ({ ...prev, [name]: value }));
+    setPasswordChangeMessage({ type: '', text: '' }); // Clear message on input change
+  };
+
+  const handleChangePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setPasswordChangeMessage({ type: '', text: '' });
+    if (passwordData.newPassword !== passwordData.confirmNewPassword) {
+      setPasswordChangeMessage({ type: 'error', text: 'New passwords do not match.' });
+      return;
+    }
+    if (!passwordData.currentPassword || !passwordData.newPassword) {
+      setPasswordChangeMessage({ type: 'error', text: 'All password fields are required.' });
+      return;
+    }
+    // TODO: Add password strength validation if desired
+
+    setLocalLoading(true);
+    try {
+      await changePassword(passwordData.currentPassword, passwordData.newPassword);
+      setPasswordChangeMessage({ type: 'success', text: 'Password changed successfully!' });
+      setPasswordData({ currentPassword: '', newPassword: '', confirmNewPassword: '' }); // Clear fields
+    } catch (error) {
+      console.error("Failed to change password", error);
+      setPasswordChangeMessage({ type: 'error', text: error.message || 'Failed to change password. Please try again.' });
+    } finally {
+      setLocalLoading(false);
+    }
+  };
+
+  const handleDeleteAccountClick = () => {
+    setDeleteConfirmPassword(''); // Clear password field when modal opens
+    setShowDeleteConfirmModal(true);
+    setDeleteAccountMessage({ type: '', text: '' }); // Clear previous messages
+  };
+
+  const handleConfirmDeleteAccount = async () => {
+    setShowDeleteConfirmModal(false);
+    setLocalLoading(true);
+    if (!deleteConfirmPassword) {
+      setDeleteAccountMessage({ type: 'error', text: 'Password is required to delete your account.' });
+      setLocalLoading(false);
+      return;
+    }
+    try {
+      await deleteAccount(deleteConfirmPassword);
+      // AuthContext's deleteAccount already calls logout.
+      // Frontend will re-render due to currentUser becoming null (handled by useEffect for navigation)
+      // or we can explicitly navigate here.
+      setDeleteAccountMessage({ type: 'success', text: 'Account deleted successfully. You will be redirected.' });
+      // The useEffect listening to currentUser should redirect to /login
+      // If not, uncomment below:
+      // navigate('/login'); 
+    } catch (error) {
+      console.error("Failed to delete account", error);
+      setDeleteAccountMessage({ type: 'error', text: error.message || 'Failed to delete account. Please try again.' });
+    }
+    setLocalLoading(false);
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirmModal(false);
   };
 
   const ProfileTab = () => {
@@ -322,83 +575,31 @@ const Profile = () => {
 );
   };
 
-  const SecurityTab = () => (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold">Security Settings</h3>
-      
-      <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h4 className="font-medium">Password</h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Last changed 3 months ago
-            </p>
-          </div>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
-            Change Password
-          </button>
-        </div>
-      </div>
-      
-      <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h4 className="font-medium">Two-Factor Authentication</h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Add an extra layer of security to your account
-            </p>
-          </div>
-          <button className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-200">
-            Enable
-          </button>
-        </div>
-      </div>
-      
-      <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h4 className="font-medium">Login Sessions</h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Manage your active sessions
-            </p>
-          </div>
-          <button className="px-4 py-2 text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200">
-            Sign Out All Devices
-          </button>
-        </div>
-        <div className={`p-3 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-white'} mb-2`}>
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="font-medium">Current Device</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Chrome on Windows • IP: 192.168.1.1
-              </p>
-            </div>
-            <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs rounded-full">
-              Active Now
-            </span>
-          </div>
-        </div>
-      </div>
-      
-      <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-red-50'}`}>
-        <h4 className="font-medium text-red-600 mb-2">Danger Zone</h4>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          Once you delete your account, there is no going back. Please be certain.
-        </p>
-        <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200">
-          Delete Account
-        </button>
-      </div>
-    </div>
-  );
+
 
   const renderTabContent = () => {
     switch (activeTab) {
       case 'profile':
         return <ProfileTab />;
       case 'security':
-        return <SecurityTab />;
+        return <SecurityTab 
+          isDarkMode={isDarkMode}
+          passwordData={passwordData}
+          handlePasswordChangeInput={handlePasswordChangeInput}
+          handleChangePasswordSubmit={handleChangePasswordSubmit}
+          passwordChangeMessage={passwordChangeMessage}
+          localLoading={localLoading}
+          handleDeleteAccountClick={handleDeleteAccountClick}
+          showDeleteConfirmModal={showDeleteConfirmModal}
+          handleConfirmDeleteAccount={handleConfirmDeleteAccount}
+          handleCancelDelete={handleCancelDelete}
+          deleteConfirmPassword={deleteConfirmPassword}
+          setDeleteConfirmPassword={setDeleteConfirmPassword}
+          deleteAccountMessage={deleteAccountMessage}
+          activeTab={activeTab}
+          KeyIcon={Key} // Pass the imported icon component
+          AlertTriangleIcon={AlertTriangle} // Pass the imported icon component
+        />;
       default:
         return <ProfileTab />;
     }
