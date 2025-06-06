@@ -120,12 +120,64 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Get Profile Data function
+  const getProfileData = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/get_profile.php`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      const data = await response.json();
+      setIsLoading(false);
+      if (response.ok && data.status === 'success') {
+        return data.user; // Return the detailed user profile
+      } else {
+        throw new Error(data.message || 'Failed to fetch profile data');
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Get profile data error:', error);
+      throw error;
+    }
+  };
+
+  // Update Profile Data function
+  const updateProfileData = async (profileDataToUpdate) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/update_profile.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(profileDataToUpdate),
+      });
+      const data = await response.json();
+      setIsLoading(false);
+      if (response.ok && data.status === 'success') {
+        // Optionally, update currentUser if the changed data is part of it
+        // This might be better handled by re-fetching or having the backend return the full updated user
+        setCurrentUser(prevUser => ({ ...prevUser, ...profileDataToUpdate }));
+        return data; 
+      } else {
+        throw new Error(data.message || 'Failed to update profile');
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Update profile error:', error);
+      throw error;
+    }
+  };
+
   const value = {
     currentUser,
     isLoading,
     login,
     signup,
     logout,
+    getProfileData,
+    updateProfileData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -5,64 +5,133 @@ import { useAuth } from '../../contexts/AuthContext';
 import { User, Mail, Phone, Settings, LogOut, Shield, Car, CreditCard, History, BellRing, Trash2, Edit } from 'lucide-react';
 
 const Profile = () => {
+  // Memories for dropdowns
+  const egyptianGovernorates = ["Alexandria", "Aswan", "Asyut", "Beheira", "Beni Suef", "Cairo", "Dakahlia", "Damietta", "Faiyum", "Gharbia", "Giza", "Ismailia", "Kafr El Sheikh", "Luxor", "Matrouh", "Minya", "Monufia", "New Valley", "North Sinai", "Port Said", "Qalyubia", "Qena", "Red Sea", "Sharqia", "Sohag", "South Sinai", "Suez"];
+  const mechanicSpecialties = ["Engine Repair", "Transmission Services", "Brake Systems", "Suspension and Steering", "Electrical Systems", "Air Conditioning (AC) Repair", "Tire Services", "Exhaust Systems", "Diagnostics", "General Maintenance"];
+
   const { isDarkMode } = useContext(ThemeContext);
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, getProfileData, updateProfileData, isLoading: authIsLoading } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
+  const [profileDetails, setProfileDetails] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [localLoading, setLocalLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    phone: '',
+    avatar: '', // Assuming URL
+    specialty: '',
+    location: ''
+  });
 
   // Redirect to login page if not authenticated
   useEffect(() => {
     if (!currentUser) {
       navigate('/login');
+    } else {
+      const fetchProfile = async () => {
+        setLocalLoading(true);
+        try {
+          const data = await getProfileData();
+          setProfileDetails(data);
+          setFormData({
+            fullName: data.fullName || '',
+            phone: data.phone || '',
+            avatar: data.avatar || '',
+            specialty: data.userType === 'mechanic' ? data.specialty || '' : '',
+            location: data.userType === 'mechanic' ? data.location || '' : ''
+          });
+        } catch (error) {
+          console.error("Failed to load profile details", error);
+          // Consider adding toast.error("Could not load profile details.");
+        }
+        setLocalLoading(false);
+      };
+      fetchProfile();
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, navigate, getProfileData]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  // If not authenticated, don't render the profile
-  if (!currentUser) {
-    return null;
+  // If initial authentication is happening (AuthContext is loading and no user yet)
+  if (authIsLoading && !currentUser) {
+    return <div className="flex justify-center items-center h-screen">Loading session...</div>;
   }
 
-  // Combine currentUser data with demo data
-  const userInfo = {
-    name: currentUser.name || 'User',
-    email: currentUser.email || 'user@example.com',
-    phone: currentUser.phone || '+1 (234) 567-8901',
-    address: currentUser.address || '123 Main Street, Anytown, CA 12345',
-    memberSince: 'January 2023',
-    avatar: currentUser.avatar,
-    cars: [
-      { id: 1, make: 'Toyota', model: 'Camry', year: 2018, color: 'Silver' },
-      { id: 2, make: 'Honda', model: 'Civic', year: 2020, color: 'Blue' }
-    ],
-    paymentMethods: [
-      { id: 1, type: 'Credit Card', last4: '4242', expiry: '04/25', isDefault: true },
-      { id: 2, type: 'PayPal', email: 'john.doe@example.com', isDefault: false }
-    ],
-    serviceHistory: [
-      { id: 1, service: 'Oil Change', date: '2023-05-15', provider: 'QuickFix Auto', status: 'Completed', amount: 49.99 },
-      { id: 2, service: 'Tire Rotation', date: '2023-07-22', provider: 'Tire Center', status: 'Completed', amount: 35.00 },
-      { id: 3, service: 'Brake Inspection', date: '2023-10-05', provider: 'Midas', status: 'Completed', amount: 79.95 }
-    ],
-    notifications: [
-      { id: 1, type: 'Service Reminder', message: 'Your Toyota Camry is due for an oil change', date: '2023-11-01', isRead: false },
-      { id: 2, type: 'Promotion', message: '25% off on all brake services this week!', date: '2023-10-28', isRead: true },
-      { id: 3, type: 'System', message: 'Your account information has been updated', date: '2023-10-25', isRead: true }
-    ]
+  // If not authenticated after AuthContext has loaded (currentUser is still null)
+  // The useEffect should handle navigation, but this is a fallback.
+  if (!currentUser) {
+    // console.log('Profile: No current user, should be redirecting via useEffect.');
+    // It's better to rely on the useEffect for navigation to avoid rendering flashes.
+    // Showing a minimal loader or null here as useEffect will navigate away.
+    return <div className="flex justify-center items-center h-screen">Authenticating...</div>; 
+  }
+
+  // At this point, currentUser is available.
+  // Now, if profileDetails are not yet loaded (either fetching or fetch failed).
+  if (!profileDetails) {
+    // This covers the period where getProfileData is running (localLoading would be true)
+    // or if getProfileData failed and profileDetails remained null.
+    return <div className="flex justify-center items-center h-screen">Loading profile data...</div>;
+  }
+
+  // If we reach here, currentUser and profileDetails are loaded and available.
+
+
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const ProfileTab = () => (
-    <div className="space-y-6">
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    setLocalLoading(true);
+    try {
+      const dataToUpdate = {
+        fullName: formData.fullName,
+        phone: formData.phone,
+        avatar: formData.avatar,
+      };
+      if (profileDetails?.userType === 'mechanic') {
+        dataToUpdate.specialty = formData.specialty;
+        dataToUpdate.location = formData.location;
+      }
+      
+      await updateProfileData(dataToUpdate);
+      // toast.success("Profile updated successfully!"); // If using toasts
+      const updatedProfile = await getProfileData(); 
+      setProfileDetails(updatedProfile);
+      // Update formData as well after successful save
+      setFormData({
+        fullName: updatedProfile.fullName || '',
+        phone: updatedProfile.phone || '',
+        avatar: updatedProfile.avatar || '',
+        specialty: updatedProfile.userType === 'mechanic' ? updatedProfile.specialty || '' : '',
+        location: updatedProfile.userType === 'mechanic' ? updatedProfile.location || '' : ''
+      });
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Failed to update profile", error);
+      // toast.error(error.message || "Could not update profile.");
+    }
+    setLocalLoading(false);
+  };
+
+  const ProfileTab = () => {
+    if (!profileDetails) return <div className="p-4">Loading profile information...</div>;
+
+    return (
+      <form onSubmit={handleProfileUpdate} className="space-y-6">
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
         <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0">
-          {userInfo.avatar ? (
+          {(isEditing ? formData.avatar : profileDetails.avatar) ? (
             <img
-              src={userInfo.avatar}
-              alt={userInfo.name}
+              src={isEditing ? formData.avatar : profileDetails.avatar}
+              alt={isEditing ? formData.fullName : profileDetails.fullName}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -72,14 +141,48 @@ const Profile = () => {
           )}
         </div>
         <div className="text-center sm:text-left space-y-2">
-          <h2 className="text-2xl font-bold">{userInfo.name}</h2>
-          <p className="text-blue-600">Premium Member</p>
+          <h2 className="text-2xl font-bold">{isEditing ? formData.fullName : profileDetails.fullName}</h2>
+          <p className="text-blue-600">{profileDetails.userType === 'mechanic' ? 'Mechanic' : 'User'}</p>
           <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>
-            Member since {userInfo.memberSince}
+            Joined: {new Date(profileDetails.created_at).toLocaleDateString()}
           </p>
-          <button className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
-            Edit Profile
-          </button>
+                    {!isEditing ? (
+            <button 
+              type="button"
+              onClick={() => setIsEditing(true)} 
+              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+            >
+              Edit Profile
+            </button>
+          ) : (
+            <div className="flex gap-2 mt-2">
+              <button 
+                type="submit" 
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                disabled={localLoading}
+              >
+                {localLoading ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button 
+                type="button"
+                onClick={() => {
+                  setIsEditing(false);
+                  // Reset form data to original profile details
+                  setFormData({
+                    fullName: profileDetails.fullName || '',
+                    phone: profileDetails.phone || '',
+                    avatar: profileDetails.avatar || '',
+                    specialty: profileDetails.userType === 'mechanic' ? profileDetails.specialty || '' : '',
+                    location: profileDetails.userType === 'mechanic' ? profileDetails.location || '' : ''
+                  });
+                }} 
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+                disabled={localLoading}
+              >
+                Cancel
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -89,27 +192,97 @@ const Profile = () => {
           <div className="flex items-center gap-2">
             <Mail size={18} className="text-blue-600" />
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
-              <p>{userInfo.email}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Email (cannot be changed)</p>
+              <p>{profileDetails.email}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Phone size={18} className="text-blue-600" />
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Phone</p>
-              <p>{userInfo.phone}</p>
+              {isEditing ? (
+                <input 
+                  type="tel" 
+                  name="phone" 
+                  value={formData.phone} 
+                  onChange={handleInputChange} 
+                  className={`w-full p-2 border rounded ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'}`}
+                />
+              ) : (
+                <p>{profileDetails.phone || 'Not set'}</p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 md:col-span-2">
             <User size={18} className="text-blue-600" />
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Address</p>
-              <p>{userInfo.address}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Avatar URL</p>
+              {isEditing ? (
+                <input 
+                  type="text" 
+                  name="avatar" 
+                  value={formData.avatar} 
+                  onChange={handleInputChange} 
+                  placeholder="https://example.com/avatar.jpg"
+                  className={`w-full p-2 border rounded ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'}`}
+                />
+              ) : (
+                <p>{profileDetails.avatar ? <a href={profileDetails.avatar} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">View Avatar</a> : 'Not set'}</p>
+              )}
             </div>
           </div>
         </div>
       </div>
 
+      <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+        {profileDetails.userType === 'mechanic' && (
+          <>
+            <h3 className="text-lg font-semibold mb-4">Mechanic Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center gap-2">
+                <Settings size={18} className="text-blue-600" />
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Specialty</p>
+                  {isEditing ? (
+                    <select 
+                      name="specialty" 
+                      value={formData.specialty} 
+                      onChange={handleInputChange} 
+                      className={`w-full p-2 border rounded ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    >
+                      <option value="">Select Specialty</option>
+                      {mechanicSpecialties.map(spec => <option key={spec} value={spec}>{spec}</option>)}
+                    </select>
+                  ) : (
+                    <p>{profileDetails.specialty || 'Not set'}</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Car size={18} className="text-blue-600" /> {/* Using Car icon for location */}
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Location (Governorate)</p>
+                  {isEditing ? (
+                    <select 
+                      name="location" 
+                      value={formData.location} 
+                      onChange={handleInputChange} 
+                      className={`w-full p-2 border rounded ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    >
+                      <option value="">Select Location</option>
+                      {egyptianGovernorates.map(gov => <option key={gov} value={gov}>{gov}</option>)}
+                    </select>
+                  ) : (
+                    <p>{profileDetails.location || 'Not set'}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* My Cars Section - This section might need to be removed or adapted if not relevant for all users */}
       <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">My Cars</h3>
@@ -118,83 +291,36 @@ const Profile = () => {
             <span>Add Car</span>
           </button>
         </div>
+        
         <div className="space-y-4">
-          {userInfo.cars.map(car => (
-            <div key={car.id} className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-white'} flex justify-between items-center`}>
-              <div className="flex items-center gap-3">
-                <Car size={20} className="text-blue-600" />
-                <div>
-                  <p className="font-medium">{car.year} {car.make} {car.model}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Color: {car.color}</p>
+          {profileDetails && Array.isArray(profileDetails.cars) && profileDetails.cars.length > 0 ? (
+            profileDetails.cars.map(car => (
+              <div key={car.id} className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-white'} flex justify-between items-center`}>
+                <div className="flex items-center gap-3">
+                  <Car size={20} className="text-blue-600" />
+                  <div>
+                    <p className="font-medium">{car.year} {car.make} {car.model}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Color: {car.color}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button className="p-1 text-blue-600 hover:text-blue-700 transition-colors duration-200">
+                    <Edit size={16} />
+                  </button>
+                  <button className="p-1 text-red-600 hover:text-red-700 transition-colors duration-200">
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <button className="p-1 text-blue-600 hover:text-blue-700 transition-colors duration-200">
-                  <Edit size={16} />
-                </button>
-                <button className="p-1 text-red-600 hover:text-red-700 transition-colors duration-200">
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-sm text-gray-500 dark:text-gray-400 p-4 text-center">No cars added yet.</p>
+          )}
         </div>
       </div>
-    </div>
-  );
-
-  const PaymentTab = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Payment Methods</h3>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-1">
-          <CreditCard size={16} />
-          <span>Add New</span>
-        </button>
-      </div>
-      
-      <div className="space-y-4">
-        {userInfo.paymentMethods.map(method => (
-          <div key={method.id} className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-md flex justify-between items-center`}>
-            <div className="flex items-center gap-3">
-              {method.type === 'Credit Card' ? (
-                <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900">
-                  <CreditCard size={20} className="text-blue-600" />
-                </div>
-              ) : (
-                <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900">
-                  <svg viewBox="0 0 24 24" width="20" height="20" className="text-blue-600">
-                    <path fill="currentColor" d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74l2.933-18.158a.91.91 0 0 1 .899-.739H9.86c3.99 0 6.464 1.343 5.741 5.653-.723 4.31-3.4 5.916-7.164 5.916h-1.28l-.76 4.828a.641.641 0 0 1-.633.528c-.3.012-.505.012-.699.012v2.7zm2.697-11.494h.899c1.898 0 2.933-.633 3.245-2.544.317-1.91-.317-2.544-2.215-2.544h-.899l-1.03 5.088z"/>
-                  </svg>
-                </div>
-              )}
-              <div>
-                <p className="font-medium">
-                  {method.type === 'Credit Card' ? `•••• •••• •••• ${method.last4}` : method.email}
-                </p>
-                {method.type === 'Credit Card' && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Expires: {method.expiry}</p>
-                )}
-                {method.isDefault && (
-                  <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 px-2 py-1 rounded-full">
-                    Default
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <button className="p-1 text-blue-600 hover:text-blue-700 transition-colors duration-200">
-                <Edit size={16} />
-              </button>
-              <button className="p-1 text-red-600 hover:text-red-700 transition-colors duration-200">
-                <Trash2 size={16} />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  </form>
+);
+  };
 
   const HistoryTab = () => (
     <div className="space-y-6">
@@ -212,7 +338,7 @@ const Profile = () => {
             </tr>
           </thead>
           <tbody className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
-            {userInfo.serviceHistory.map((service) => (
+            {(profileDetails?.serviceHistory || []).map((service) => (
               <tr key={service.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium">{service.service}</div>
@@ -253,7 +379,7 @@ const Profile = () => {
       </div>
       
       <div className="space-y-4">
-        {userInfo.notifications.map((notification) => (
+        {(profileDetails?.notifications || []).map((notification) => (
           <div 
             key={notification.id} 
             className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-md 
@@ -371,8 +497,7 @@ const Profile = () => {
     switch (activeTab) {
       case 'profile':
         return <ProfileTab />;
-      case 'payment':
-        return <PaymentTab />;
+
       case 'history':
         return <HistoryTab />;
       case 'notifications':
@@ -406,19 +531,7 @@ const Profile = () => {
                   <span>Profile</span>
                 </button>
               </li>
-              <li>
-                <button
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left ${
-                    activeTab === 'payment' 
-                      ? 'bg-blue-600 text-white' 
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  } transition-colors duration-200`}
-                  onClick={() => setActiveTab('payment')}
-                >
-                  <CreditCard size={20} />
-                  <span>Payment Methods</span>
-                </button>
-              </li>
+
               <li>
                 <button
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left ${
