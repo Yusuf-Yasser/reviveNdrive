@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     $profileData = [];
 
     // Fetch common user data
-    $stmtUser = $conn->prepare("SELECT id, fullName, email, phone, avatar, user_type FROM users WHERE id = ?");
+    $stmtUser = $conn->prepare("SELECT id, fullName, email, phone, avatar, user_type, created_at FROM users WHERE id = ?");
     if (!$stmtUser) {
         http_response_code(500);
         echo json_encode(['status' => 'error', 'message' => 'Failed to prepare user statement: ' . $conn->error]);
@@ -45,7 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             'email' => $user['email'],
             'phone' => $user['phone'],
             'avatar' => $user['avatar'],
-            'userType' => $user['user_type']
+            'userType' => $user['user_type'],
+            'created_at' => $user['created_at']
         ];
 
         // If user is a mechanic, fetch mechanic-specific data
