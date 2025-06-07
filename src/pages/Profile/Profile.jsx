@@ -404,117 +404,118 @@ const Profile = () => {
 
     return (
       <form onSubmit={handleProfileUpdate} className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-        <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0">
-          {(isEditing ? formData.avatar : profileDetails.avatar) ? (
-            <img
-              src={isEditing ? formData.avatar : profileDetails.avatar}
-              alt={isEditing ? formData.fullName : profileDetails.fullName}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600">
-              <User size={48} />
-            </div>
-          )}
-        </div>
-        <div className="text-center sm:text-left space-y-2">
-          <h2 className="text-2xl font-bold">{isEditing ? formData.fullName : profileDetails.fullName}</h2>
-          <p className="text-blue-600">{profileDetails.userType === 'mechanic' ? 'Mechanic' : 'User'}</p>
-          <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>
-            Joined: {new Date(profileDetails.created_at).toLocaleDateString()}
-          </p>
-                    {!isEditing ? (
-            <button 
-              type="button"
-              onClick={() => setIsEditing(true)} 
-              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-            >
-              Edit Profile
-            </button>
-          ) : (
-            <div className="flex gap-2 mt-2">
-              <button 
-                type="submit" 
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
-                disabled={localLoading}
-              >
-                {localLoading ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button 
+        {/* Profile Header */}
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+          <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0">
+            {(isEditing ? formData.avatar : profileDetails.avatar) ? (
+              <img
+                src={isEditing ? formData.avatar : profileDetails.avatar}
+                alt={isEditing ? formData.fullName : profileDetails.fullName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600">
+                <User size={48} />
+              </div>
+            )}
+          </div>
+          <div className="text-center sm:text-left space-y-2">
+            <h2 className="text-2xl font-bold">{isEditing ? formData.fullName : profileDetails.fullName}</h2>
+            <p className="text-blue-600">{profileDetails.userType === 'mechanic' ? 'Mechanic' : 'User'}</p>
+            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>
+              Joined: {new Date(profileDetails.created_at).toLocaleDateString()}
+            </p>
+            {!isEditing ? (
+              <button
                 type="button"
-                onClick={() => {
-                  setIsEditing(false);
-                  // Reset form data to original profile details
-                  setFormData({
-                    fullName: profileDetails.fullName || '',
-                    phone: profileDetails.phone || '',
-                    avatar: profileDetails.avatar || '',
-                    specialty: profileDetails.userType === 'mechanic' ? profileDetails.specialty || '' : '',
-                    location: profileDetails.userType === 'mechanic' ? profileDetails.location || '' : ''
-                  });
-                }} 
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
-                disabled={localLoading}
+                onClick={() => setIsEditing(true)}
+                className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
               >
-                Cancel
+                Edit Profile
               </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-        <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center gap-2">
-            <Mail size={18} className="text-blue-600" />
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Email (cannot be changed)</p>
-              <p>{profileDetails.email}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Phone size={18} className="text-blue-600" />
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Phone</p>
-              {isEditing ? (
-                <input 
-                  type="tel" 
-                  name="phone" 
-                  value={formData.phone} 
-                  onChange={handleInputChange} 
-                  className={`w-full p-2 border rounded ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'}`}
-                />
-              ) : (
-                <p>{profileDetails.phone || 'Not set'}</p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2 md:col-span-2">
-            <User size={18} className="text-blue-600" />
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Avatar URL</p>
-              {isEditing ? (
-                <input 
-                  type="text" 
-                  name="avatar" 
-                  value={formData.avatar} 
-                  onChange={handleInputChange} 
-                  placeholder="https://example.com/avatar.jpg"
-                  className={`w-full p-2 border rounded ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'}`}
-                />
-              ) : (
-                <p>{profileDetails.avatar ? <a href={profileDetails.avatar} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">View Avatar</a> : 'Not set'}</p>
-              )}
-            </div>
+            ) : (
+              <div className="flex gap-2 mt-2">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                  disabled={localLoading}
+                >
+                  {localLoading ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditing(false);
+                    setFormData({
+                      fullName: profileDetails.fullName || '',
+                      phone: profileDetails.phone || '',
+                      avatar: profileDetails.avatar || '',
+                      specialty: profileDetails.userType === 'mechanic' ? profileDetails.specialty || '' : '',
+                      location: profileDetails.userType === 'mechanic' ? profileDetails.location || '' : ''
+                    });
+                  }}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+                  disabled={localLoading}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
         </div>
-      </div>
 
-      <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+        {/* Personal Information */}
+        <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+          <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-2">
+              <Mail size={18} className="text-blue-600" />
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Email (cannot be changed)</p>
+                <p>{profileDetails.email}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Phone size={18} className="text-blue-600" />
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Phone</p>
+                {isEditing ? (
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className={`w-full p-2 border rounded ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'}`}
+                  />
+                ) : (
+                  <p>{profileDetails.phone || 'Not set'}</p>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 md:col-span-2">
+              <User size={18} className="text-blue-600" />
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Avatar URL</p>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="avatar"
+                    value={formData.avatar}
+                    onChange={handleInputChange}
+                    placeholder="https://example.com/avatar.jpg"
+                    className={`w-full p-2 border rounded ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'}`}
+                  />
+                ) : (
+                  <p>{profileDetails.avatar ? <a href={profileDetails.avatar} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">View Avatar</a> : 'Not set'}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mechanic Information - Only for mechanics */}
         {profileDetails.userType === 'mechanic' && (
-          <>
+          <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
             <h3 className="text-lg font-semibold mb-4">Mechanic Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
@@ -522,10 +523,10 @@ const Profile = () => {
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Specialty</p>
                   {isEditing ? (
-                    <select 
-                      name="specialty" 
-                      value={formData.specialty} 
-                      onChange={handleInputChange} 
+                    <select
+                      name="specialty"
+                      value={formData.specialty}
+                      onChange={handleInputChange}
                       className={`w-full p-2 border rounded ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
                     >
                       <option value="">Select Specialty</option>
@@ -541,10 +542,10 @@ const Profile = () => {
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Location (Governorate)</p>
                   {isEditing ? (
-                    <select 
-                      name="location" 
-                      value={formData.location} 
-                      onChange={handleInputChange} 
+                    <select
+                      name="location"
+                      value={formData.location}
+                      onChange={handleInputChange}
                       className={`w-full p-2 border rounded ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
                     >
                       <option value="">Select Location</option>
@@ -556,52 +557,49 @@ const Profile = () => {
                 </div>
               </div>
             </div>
-          </>
+          </div>
         )}
-      </div>
 
-      {/* My Cars Section - This section might need to be removed or adapted if not relevant for all users */}
-      <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">My Cars</h3>
-          <button className="text-blue-600 hover:text-blue-700 transition-colors duration-200 flex items-center gap-1">
-            <Edit size={16} />
-            <span>Add Car</span>
-          </button>
-        </div>
-        
-        <div className="space-y-4">
-          {profileDetails && Array.isArray(profileDetails.cars) && profileDetails.cars.length > 0 ? (
-            profileDetails.cars.map(car => (
-              <div key={car.id} className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-white'} flex justify-between items-center`}>
-                <div className="flex items-center gap-3">
-                  <Car size={20} className="text-blue-600" />
-                  <div>
-                    <p className="font-medium">{car.year} {car.make} {car.model}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Color: {car.color}</p>
+        {/* My Cars Section - Only for non-mechanic users */}
+        {profileDetails && profileDetails.userType !== 'mechanic' && (
+          <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">My Cars</h3>
+              <button className="text-blue-600 hover:text-blue-700 transition-colors duration-200 flex items-center gap-1">
+                <Edit size={16} />
+                <span>Add Car</span>
+              </button>
+            </div>
+            <div className="space-y-4">
+              {profileDetails && Array.isArray(profileDetails.cars) && profileDetails.cars.length > 0 ? (
+                profileDetails.cars.map(car => (
+                  <div key={car.id} className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-white'} flex justify-between items-center`}>
+                    <div className="flex items-center gap-3">
+                      <Car size={20} className="text-blue-600" />
+                      <div>
+                        <p className="font-medium">{car.year} {car.make} {car.model}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Color: {car.color}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button className="p-1 text-blue-600 hover:text-blue-700 transition-colors duration-200">
+                        <Edit size={16} />
+                      </button>
+                      <button className="p-1 text-red-600 hover:text-red-700 transition-colors duration-200">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button className="p-1 text-blue-600 hover:text-blue-700 transition-colors duration-200">
-                    <Edit size={16} />
-                  </button>
-                  <button className="p-1 text-red-600 hover:text-red-700 transition-colors duration-200">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-sm text-gray-500 dark:text-gray-400 p-4 text-center">No cars added yet.</p>
-          )}
-        </div>
-      </div>
-  </form>
-);
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 dark:text-gray-400 p-4 text-center">No cars added yet.</p>
+              )}
+            </div>
+          </div>
+        )}
+      </form>
+    );
   };
-
-
-
   const renderTabContent = () => {
     switch (activeTab) {
       case 'profile':
