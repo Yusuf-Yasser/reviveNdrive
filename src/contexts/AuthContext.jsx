@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 export const AuthContext = createContext();
 
@@ -121,7 +121,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Get Profile Data function
-  const getProfileData = async (signal) => {
+  const getProfileData = useCallback(async (signal) => {
     setIsLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/get_profile.php`, {
@@ -131,18 +131,20 @@ export const AuthProvider = ({ children }) => {
         signal, // Pass the AbortSignal to fetch
       });
       const data = await response.json();
-      setIsLoading(false);
       if (response.ok && data.status === 'success') {
         return data.user; // Return the detailed user profile
       } else {
         throw new Error(data.message || 'Failed to fetch profile data');
       }
     } catch (error) {
-      setIsLoading(false);
-      console.error('Get profile data error:', error);
-      throw error;
+      if (error.name !== 'AbortError') { // Avoid logging AbortError as a critical server/network issue
+        console.error('Get profile data error:', error);
+      }
+      throw error; // Re-throw to be handled by the caller
+    } finally {
+      setIsLoading(false); // Ensure isLoading is always reset
     }
-  };
+  }, [setIsLoading]); // API_BASE_URL is a const, setIsLoading is stable from useState
 
   // Update Profile Data function
   const updateProfileData = async (profileDataToUpdate) => {

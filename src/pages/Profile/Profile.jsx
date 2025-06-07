@@ -250,7 +250,7 @@ const Profile = () => {
     return () => {
       abortController.abort(); // Abort fetch if component unmounts or dependencies change
     };
-  }, [currentUser, navigate, getProfileData, isProfileDataFetched, setLocalLoading, setFormData, setProfileDetails]);
+  }, [currentUser, navigate, getProfileData, setLocalLoading, setFormData, setProfileDetails]);
 
   // Clear security-related messages when the security tab is activated
   useEffect(() => {
