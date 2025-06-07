@@ -201,37 +201,62 @@ const Profile = () => {
   const [deleteAccountMessage, setDeleteAccountMessage] = useState({ type: '', text: '' });
   const [deleteConfirmPassword, setDeleteConfirmPassword] = useState('');
 
+  const [isProfileDataFetched, setIsProfileDataFetched] = useState(false);
+
   // Redirect to login page if not authenticated
   useEffect(() => {
-    if (!currentUser) {
-      navigate('/login');
-    } else {
-      const fetchProfile = async () => {
+    setIsProfileDataFetched(false);
+  }, [currentUser]);
+
+  useEffect(() => {
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+
+    const loadProfileData = async () => {
+      if (currentUser && !isProfileDataFetched) {
         setLocalLoading(true);
         try {
-          const data = await getProfileData();
-          setProfileDetails(data);
-          setFormData({
-            fullName: data.fullName || '',
-            phone: data.phone || '',
-            avatar: data.avatar || '',
-            specialty: data.userType === 'mechanic' ? data.specialty || '' : '',
-            location: data.userType === 'mechanic' ? data.location || '' : ''
-          });
+          const data = await getProfileData(signal); 
+          if (data && !signal.aborted) {
+            setFormData({
+              fullName: data.fullName || '',
+              phone: data.phone || '',
+              avatar: data.avatar || '',
+              specialty: data.userType === 'mechanic' ? data.specialty || '' : '',
+              location: data.userType === 'mechanic' ? data.location || '' : ''
+            });
+            setProfileDetails(data);
+            setIsProfileDataFetched(true); // Mark as fetched for this user session
+          }
         } catch (error) {
-          console.error("Failed to load profile details", error);
-          // Consider adding toast.error("Could not load profile details.");
+          if (error.name === 'AbortError') {
+            console.log('Profile fetch aborted due to component unmount or dependency change.');
+          } else if (!signal.aborted) {
+            console.error("Failed to fetch profile", error);
+            // setProfileMessage({ type: 'error', text: 'Failed to load profile. ' + error.message });
+          }
+        } finally {
+          if (!signal.aborted) {
+            setLocalLoading(false);
+          }
         }
-        setLocalLoading(false);
-      };
-      fetchProfile();
-    }
-  }, [currentUser, navigate, getProfileData]);
+      } else if (!currentUser) {
+        navigate('/login');
+      }
+    };
+
+    loadProfileData();
+
+    return () => {
+      abortController.abort(); // Abort fetch if component unmounts or dependencies change
+    };
+  }, [currentUser, navigate, getProfileData, isProfileDataFetched, setLocalLoading, setFormData, setProfileDetails]);
 
   // Clear security-related messages when the security tab is activated
   useEffect(() => {
     if (activeTab === 'security') {
       setPasswordChangeMessage({ type: '', text: '' });
+      setDeleteAccountMessage({ type: '', text: '' }); // Clear previous messages
       setDeleteAccountMessage({ type: '', text: '' });
       // Optionally, reset localLoading if it's specific to security tab operations
       // and not general profile loading, but current setup seems fine.

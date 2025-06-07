@@ -121,13 +121,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Get Profile Data function
-  const getProfileData = async () => {
+  const getProfileData = async (signal) => {
     setIsLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/get_profile.php`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        signal, // Pass the AbortSignal to fetch
       });
       const data = await response.json();
       setIsLoading(false);

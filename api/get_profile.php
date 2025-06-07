@@ -2,14 +2,16 @@
 require_once 'config.php';
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: http://localhost:5173');
-header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Access-Control-Allow-Credentials: true');
+// CORS headers are handled in config.php
+// header('Access-Control-Allow-Origin: http://localhost:5173');
+// header('Access-Control-Allow-Methods: GET, OPTIONS');
+// header('Access-Control-Allow-Headers: Content-Type, Authorization');
+// header('Access-Control-Allow-Credentials: true');
 
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+// session_start() is handled in config.php
+// if (session_status() == PHP_SESSION_NONE) {
+//     session_start();
+// }
 
 // Handle OPTIONS request (pre-flight request)
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
@@ -25,6 +27,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     }
 
     $userId = $_SESSION['user_id'];
+    
+    // Release the session lock as we've got the user_id and won't write to the session
+    session_write_close(); 
+
     $profileData = [];
 
     // Fetch common user data
@@ -55,8 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             if (!$stmtMechanic) {
                 http_response_code(500);
                 echo json_encode(['status' => 'error', 'message' => 'Failed to prepare mechanic statement: ' . $conn->error]);
-                $stmtUser->close();
-                $conn->close();
+                $stmtUser->close(); // Close previous statement
+                // $conn->close(); // Connection will be closed at script end
                 exit();
             }
             $stmtMechanic->bind_param("i", $userId);
@@ -77,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         echo json_encode(['status' => 'error', 'message' => 'User not found.']);
     }
     $stmtUser->close();
-    $conn->close();
+    // $conn->close(); // Connection will be closed automatically at script end
 
 } else {
     http_response_code(405); // Method Not Allowed
