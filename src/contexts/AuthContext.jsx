@@ -224,6 +224,56 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Add Car function
+  const addCar = async (carData) => {
+    if (!currentUser) throw new Error('User not authenticated');
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/add_car.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(carData),
+      });
+      const data = await response.json();
+      setIsLoading(false);
+      if (response.ok && data.status === 'success') {
+        return data;
+      } else {
+        throw new Error(data.message || 'Failed to add car');
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Add car error:', error);
+      throw error;
+    }
+  };
+
+  // Delete Car function
+  const deleteCar = async (carId) => {
+    if (!currentUser) throw new Error('User not authenticated');
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/delete_car.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ carId }),
+      });
+      const data = await response.json();
+      setIsLoading(false);
+      if (response.ok && data.status === 'success') {
+        return data;
+      } else {
+        throw new Error(data.message || 'Failed to delete car');
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Delete car error:', error);
+      throw error;
+    }
+  };
+
   const value = {
     currentUser,
     isLoading,
@@ -234,6 +284,8 @@ export const AuthProvider = ({ children }) => {
     updateProfileData,
     changePassword,
     deleteAccount,
+    addCar,
+    deleteCar,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

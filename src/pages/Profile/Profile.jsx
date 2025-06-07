@@ -177,7 +177,7 @@ const Profile = () => {
   const mechanicSpecialties = ["Engine Repair", "Transmission Services", "Brake Systems", "Suspension and Steering", "Electrical Systems", "Air Conditioning (AC) Repair", "Tire Services", "Exhaust Systems", "Diagnostics", "General Maintenance"];
 
   const { isDarkMode } = useContext(ThemeContext);
-  const { currentUser, logout, getProfileData, updateProfileData, changePassword, deleteAccount, isLoading: authIsLoading } = useAuth();
+  const { currentUser, logout, getProfileData, updateProfileData, changePassword, deleteAccount, addCar, deleteCar, isLoading: authIsLoading } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [profileDetails, setProfileDetails] = useState(null);
@@ -200,6 +200,17 @@ const Profile = () => {
   const [passwordChangeMessage, setPasswordChangeMessage] = useState({ type: '', text: '' });
   const [deleteAccountMessage, setDeleteAccountMessage] = useState({ type: '', text: '' });
   const [deleteConfirmPassword, setDeleteConfirmPassword] = useState('');
+  
+  // Car-related state
+  const [showAddCarModal, setShowAddCarModal] = useState(false);
+  const [carData, setCarData] = useState({
+    make: '',
+    model: '',
+    year: '',
+    color: '',
+  });
+  const [carDataLoading, setCarDataLoading] = useState(false);
+  const [carMessage, setCarMessage] = useState({ type: '', text: '' });
 
   const [isProfileDataFetched, setIsProfileDataFetched] = useState(false);
 
@@ -398,6 +409,55 @@ const Profile = () => {
   const handleCancelDelete = () => {
     setShowDeleteConfirmModal(false);
   };
+  
+  // Car-related functions
+  const handleCarInputChange = (e) => {
+    const { name, value } = e.target;
+    setCarData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleAddCarSubmit = async () => {
+    setCarDataLoading(true);
+    setCarMessage({ type: '', text: '' });
+    
+    try {
+      const result = await addCar(carData);
+      
+      // Refresh profile data to include the new car
+      const updatedProfile = await getProfileData();
+      setProfileDetails(updatedProfile);
+      
+      // Reset form and close modal
+      setCarData({ make: '', model: '', year: '', color: '' });
+      setShowAddCarModal(false);
+      setCarMessage({ type: 'success', text: 'Car added successfully!' });
+    } catch (error) {
+      setCarMessage({ type: 'error', text: error.message || 'Failed to add car. Please try again.' });
+    }
+    
+    setCarDataLoading(false);
+  };
+  
+  const handleDeleteCar = async (carId) => {
+    if (!window.confirm('Are you sure you want to delete this car?')) {
+      return;
+    }
+    
+    setLocalLoading(true);
+    
+    try {
+      await deleteCar(carId);
+      
+      // Refresh profile data to reflect the deleted car
+      const updatedProfile = await getProfileData();
+      setProfileDetails(updatedProfile);
+    } catch (error) {
+      console.error('Failed to delete car:', error);
+      alert('Failed to delete car: ' + (error.message || 'Unknown error'));
+    }
+    
+    setLocalLoading(false);
+  };
 
   const ProfileTab = () => {
     if (!profileDetails) return <div className="p-4">Loading profile information...</div>;
@@ -565,7 +625,10 @@ const Profile = () => {
           <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">My Cars</h3>
-              <button className="text-blue-600 hover:text-blue-700 transition-colors duration-200 flex items-center gap-1">
+              <button 
+                onClick={() => setShowAddCarModal(true)}
+                className="text-blue-600 hover:text-blue-700 transition-colors duration-200 flex items-center gap-1"
+              >
                 <Edit size={16} />
                 <span>Add Car</span>
               </button>
@@ -578,14 +641,14 @@ const Profile = () => {
                       <Car size={20} className="text-blue-600" />
                       <div>
                         <p className="font-medium">{car.year} {car.make} {car.model}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Color: {car.color}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Color: {car.color || 'Not specified'}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <button className="p-1 text-blue-600 hover:text-blue-700 transition-colors duration-200">
-                        <Edit size={16} />
-                      </button>
-                      <button className="p-1 text-red-600 hover:text-red-700 transition-colors duration-200">
+                      <button 
+                        className="p-1 text-red-600 hover:text-red-700 transition-colors duration-200"
+                        onClick={() => handleDeleteCar(car.id)}
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -631,6 +694,117 @@ const Profile = () => {
   return (
     <div className="max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">My Account</h1>
+      
+      {/* Add Car Modal */}
+      {showAddCarModal && (
+        <div className="fixed z-50 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className={`fixed inset-0 transition-opacity ${isDarkMode ? 'bg-gray-900 bg-opacity-75' : 'bg-gray-500 bg-opacity-75'}`} aria-hidden="true"></div>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div className={`inline-block align-bottom rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
+              <div className={`px-4 pt-5 pb-4 sm:p-6 sm:pb-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <div className="sm:flex sm:items-start">
+                  <div className={`mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10 ${isDarkMode ? 'bg-blue-700' : 'bg-blue-100'}`}>
+                    <Car className={`h-6 w-6 ${isDarkMode ? 'text-blue-300' : 'text-blue-600'}`} aria-hidden="true" />
+                  </div>
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <h3 className={`text-lg leading-6 font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`} id="modal-title">
+                      Add New Car
+                    </h3>
+                    <div className="mt-4">
+                      <div className="space-y-4">
+                        <div>
+                          <label htmlFor="make" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            Car Make
+                          </label>
+                          <input 
+                            type="text"
+                            id="make"
+                            name="make"
+                            value={carData.make}
+                            onChange={handleCarInputChange}
+                            placeholder="e.g., Toyota, Honda"
+                            className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 placeholder-gray-400'}`}
+                            required 
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="model" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            Car Model
+                          </label>
+                          <input 
+                            type="text"
+                            id="model"
+                            name="model"
+                            value={carData.model}
+                            onChange={handleCarInputChange}
+                            placeholder="e.g., Corolla, Civic"
+                            className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 placeholder-gray-400'}`}
+                            required 
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="year" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            Year
+                          </label>
+                          <input 
+                            type="number"
+                            id="year"
+                            name="year"
+                            value={carData.year}
+                            onChange={handleCarInputChange}
+                            min="1900"
+                            max={new Date().getFullYear() + 1}
+                            placeholder="e.g., 2020"
+                            className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 placeholder-gray-400'}`}
+                            required 
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="color" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            Color (Optional)
+                          </label>
+                          <input 
+                            type="text"
+                            id="color"
+                            name="color"
+                            value={carData.color}
+                            onChange={handleCarInputChange}
+                            placeholder="e.g., Red, Blue, Silver"
+                            className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 placeholder-gray-400'}`}
+                          />
+                        </div>
+                        {carMessage.text && (
+                          <p className={`text-sm ${carMessage.type === 'error' ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400'}`}>
+                            {carMessage.text}
+                          </p>
+                        )}
+                        <div className="flex justify-end space-x-3 pt-4">
+                          <button
+                            type="button"
+                            onClick={() => setShowAddCarModal(false)}
+                            className={`px-4 py-2 border rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600 focus:ring-gray-500' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-indigo-500'}`}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleAddCarSubmit}
+                            disabled={carDataLoading}
+                            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {carDataLoading ? 'Adding...' : 'Add Car'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="flex flex-col md:flex-row gap-6">
         {/* Sidebar Navigation */}

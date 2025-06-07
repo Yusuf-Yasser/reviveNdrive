@@ -73,6 +73,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                 $profileData['location'] = $mechanic['location'];
             }
             $stmtMechanic->close();
+        } else {
+            // For non-mechanic users, fetch their cars
+            $stmtCars = $conn->prepare("SELECT id, make, model, year, color, created_at FROM cars WHERE user_id = ? ORDER BY created_at DESC");
+            if (!$stmtCars) {
+                http_response_code(500);
+                echo json_encode(['status' => 'error', 'message' => 'Failed to prepare cars statement: ' . $conn->error]);
+                $stmtUser->close();
+                exit();
+            }
+            
+            $stmtCars->bind_param("i", $userId);
+            $stmtCars->execute();
+            $resultCars = $stmtCars->get_result();
+            
+            $cars = [];
+            while ($car = $resultCars->fetch_assoc()) {
+                $cars[] = $car;
+            }
+            
+            $profileData['cars'] = $cars;
+            $stmtCars->close();
         }
 
         http_response_code(200);
