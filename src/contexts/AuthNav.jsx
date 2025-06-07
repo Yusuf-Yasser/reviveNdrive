@@ -62,14 +62,6 @@ const AuthNav = () => {
                 onClick={() => setIsDropdownOpen(false)}
               >
                 <User size={16} />
-                <span>Profile</span>
-              </Link>
-              <Link
-                to="/settings"
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors w-full text-left"
-                onClick={() => setIsDropdownOpen(false)}
-              >
-                <Settings size={16} />
                 <span>Settings</span>
               </Link>
               <hr className="my-1 border-gray-200 dark:border-gray-700" />
