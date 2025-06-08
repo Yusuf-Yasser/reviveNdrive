@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound/NotFound";
 import Community from "./pages/Community/Community";
 import FAQ from "./pages/Community/FAQ";
 import UsedCarsList from "./pages/Cars/UsedCarsList";
+import UsedCarDetails from "./pages/Cars/UsedCarDetails";
 import SparePartsList from "./pages/Cars/SparePartsList";
 import SparePartDetail from "./pages/Cars/SparePartDetail";
 import ManageSpareParts from "./pages/Mechanic/ManageSpareParts";
@@ -69,6 +70,10 @@ function App() {
                 <Route
                   path="used-cars-list"
                   element={<UsedCarsList />}
+                />
+                <Route
+                  path="used-car-details/:id"
+                  element={<UsedCarDetails />}
                 />
                 <Route
                   path="payment/confirmation"
