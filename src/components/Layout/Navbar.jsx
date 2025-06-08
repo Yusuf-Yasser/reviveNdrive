@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ThemeContext } from "../../contexts/ThemeContext";
 import AuthNav from "../../contexts/AuthNav";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   Sun,
   Moon,
@@ -15,6 +16,7 @@ import {
 
 const Navbar = () => {
   const { isDarkMode, toggleTheme } = useContext(ThemeContext);
+  const { currentUser } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [servicesDropdown, setServicesDropdown] = useState(false);
   const [carsDropdown, setCarsDropdown] = useState(false);
@@ -79,6 +81,30 @@ const Navbar = () => {
     setMobileDropdown(mobileDropdown === name ? "" : name);
   };
 
+  // Create cars menu items based on user type
+  const getCarsMenuItems = () => {
+    // For regular users (non-mechanics)
+    const regularUserItems = [
+      { name: "List Used Cars", path: "/used-cars", icon: "Car" },
+      { name: "View Spare Parts", path: "/spare-parts-list", icon: "tool" },
+      {
+        name: "View Used Cars",
+        path: "/used-cars-list",
+        icon: "car",
+      },
+    ];
+
+    // For mechanics, only show List Spare Parts
+    if (currentUser && currentUser.userType === "mechanic") {
+      return [
+        { name: "List Spare Parts", path: "/spare-parts", icon: "Tool" },
+      ];
+    }
+
+    // Return regular menu items for non-mechanic users
+    return regularUserItems;
+  };
+
   const navLinks = [
     { name: "Home", path: "/" },
     {
@@ -91,16 +117,7 @@ const Navbar = () => {
     },
     {
       name: "Cars",
-      items: [
-        { name: "List Spare Parts", path: "/spare-parts", icon: "Tool" },
-        { name: "List Used Cars", path: "/used-cars", icon: "Car" },
-        { name: "View Spare Parts", path: "/spare-parts-list", icon: "tool" },
-        {
-          name: "View Used Cars",
-          path: "/used-cars-list",
-          icon: "car",
-        },
-      ],
+      items: getCarsMenuItems(),
     },
     { name: "About", path: "/about" },
     { name: "Feedback", path: "/feedback" },

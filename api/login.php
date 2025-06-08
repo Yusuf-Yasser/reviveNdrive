@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Fetch user from database
-    $stmt = $conn->prepare("SELECT id, fullName, email, password, avatar, phone FROM users WHERE email = ?");
+    $stmt = $conn->prepare("SELECT id, fullName, email, password, avatar, phone, user_type FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -60,7 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     'name' => $user['fullName'], // Consistent with AuthContext
                     'email' => $user['email'],
                     'avatar' => $user['avatar'],
-                    'phone' => $user['phone']
+                    'phone' => $user['phone'],
+                    'userType' => $user['user_type']
                 ]
             ]);
         } else {

@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         // (or just return session data if that's sufficient and DB hit is not needed every time)
         $userId = $_SESSION['user_id'];
 
-        $stmt = $conn->prepare("SELECT id, fullName, email, avatar, phone FROM users WHERE id = ?");
+        $stmt = $conn->prepare("SELECT id, fullName, email, avatar, phone, user_type FROM users WHERE id = ?");
         $stmt->bind_param("i", $userId);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -44,7 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                     'name' => $user['fullName'],
                     'email' => $user['email'],
                     'avatar' => $user['avatar'],
-                    'phone' => $user['phone']
+                    'phone' => $user['phone'],
+                    'userType' => $user['user_type']
                 ]
             ]);
         } else {
