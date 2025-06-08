@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { Package } from "lucide-react";
 
 const ManageSpareParts = () => {
   const { currentUser } = useAuth();
@@ -83,8 +84,7 @@ const ManageSpareParts = () => {
   };
 
   const handleEditPart = (partId) => {
-    // In a full implementation, you might navigate to an edit page or show a modal
-    alert(`Edit functionality for part #${partId} would go here`);
+    navigate(`/mechanic/edit-spare-part/${partId}`);
   };
 
   const handleAddPart = () => {
@@ -95,12 +95,21 @@ const ManageSpareParts = () => {
     <div className="max-w-6xl mx-auto p-6 pt-24">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">My Spare Parts</h1>
-        <button
-          onClick={handleAddPart}
-          className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded transition duration-300"
-        >
-          Add New Part
-        </button>
+        <div className="flex gap-3">
+          <Link
+            to="/mechanic/orders"
+            className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded transition duration-300 flex items-center gap-2"
+          >
+            <Package size={18} />
+            <span>View Orders</span>
+          </Link>
+          <button
+            onClick={handleAddPart}
+            className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded transition duration-300"
+          >
+            Add New Part
+          </button>
+        </div>
       </div>
 
       {actionError && (

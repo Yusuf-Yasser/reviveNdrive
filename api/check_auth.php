@@ -33,37 +33,39 @@ function debugLog($message, $data = null) {
 /**
  * Check if a user is authenticated and return user data
  * 
- * @return array|false User data array or false if not authenticated
+ * @return array Authentication result containing 'is_authenticated' flag and user data if authenticated
  */
-function checkAuth() {
+function check_auth() {
     global $conn;
     
-    debugLog("Session data:", $_SESSION);
+    // Initialize return structure
+    $result = [
+        'is_authenticated' => false,
+        'user_id' => null,
+        'user_data' => null
+    ];
     
     if (!isset($_SESSION['user_id'])) {
-        debugLog("No user_id in session");
-        return false;
+        return $result;
     }
     
     $userId = $_SESSION['user_id'];
-    debugLog("Found user_id in session: " . $userId);
+    $result['user_id'] = $userId;
     
     try {
         $stmt = $conn->prepare("SELECT id, fullName, email, avatar, phone, user_type FROM users WHERE id = ?");
         if (!$stmt) {
-            debugLog("Failed to prepare statement: " . $conn->error);
-            return false;
+            return $result;
         }
         
         $stmt->bind_param("i", $userId);
         $stmt->execute();
-        $result = $stmt->get_result();
+        $result_set = $stmt->get_result();
         
-        if ($user = $result->fetch_assoc()) {
+        if ($user = $result_set->fetch_assoc()) {
             $stmt->close();
-            debugLog("User found in database", $user);
             
-            // For testing, create a simpler user structure
+            // User data structure
             $userData = [
                 'id' => $user['id'],
                 'name' => $user['fullName'],
@@ -73,24 +75,24 @@ function checkAuth() {
                 'userType' => $user['user_type']
             ];
             
-            return $userData;
+            $result['is_authenticated'] = true;
+            $result['user_data'] = $userData;
+            
+            return $result;
         } else {
             // User ID in session but not in DB (should not happen ideally)
-            debugLog("User not found in database with ID: " . $userId);
             session_destroy(); // Clear invalid session
             $stmt->close();
-            return false;
+            return $result;
         }
     } catch (Exception $e) {
-        debugLog("Exception in checkAuth: " . $e->getMessage());
-        return false;
+        return $result;
     }
 }
 
 // Force a temporary user for testing if none exists
 // REMOVE THIS IN PRODUCTION
-if (!isset($_SESSION['user_id'])) {
-    debugLog("Setting temporary test user for development");
+if (!isset($_SESSION['user_id']) && $_SERVER['SERVER_NAME'] === 'localhost') {
     $_SESSION['user_id'] = 1; // Assuming ID 1 exists in the database
 }
 
@@ -109,14 +111,14 @@ if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
     }
 
     if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-        $user = checkAuth();
+        $auth_result = check_auth();
         
-        if ($user) {
+        if ($auth_result['is_authenticated']) {
             http_response_code(200);
             echo json_encode([
                 'status' => 'success',
                 'loggedIn' => true,
-                'user' => $user
+                'user' => $auth_result['user_data']
             ]);
         } else {
             // User is not logged in

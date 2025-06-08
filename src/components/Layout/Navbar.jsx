@@ -94,11 +94,12 @@ const Navbar = () => {
       },
     ];
 
-    // For mechanics, only show List Spare Parts
+    // For mechanics, show Spare Parts options
     if (currentUser && currentUser.userType === "mechanic") {
       return [
         { name: "List Spare Parts", path: "/spare-parts", icon: "Tool" },
         { name: "Manage Spare Parts", path: "/mechanic/spare-parts", icon: "Settings" },
+        { name: "View Spare Parts", path: "/spare-parts-list", icon: "tool" },
       ];
     }
 

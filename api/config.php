@@ -24,10 +24,10 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Enable error reporting for debugging (remove or comment out in production)
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// Disable error display for production (prevents HTML errors in JSON responses)
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+error_reporting(0);
 
 define('DB_SERVER', 'localhost');
 define('DB_USERNAME', 'root'); // Default XAMPP username

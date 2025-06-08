@@ -25,6 +25,9 @@ import UsedCarDetails from "./pages/Cars/UsedCarDetails";
 import SparePartsList from "./pages/Cars/SparePartsList";
 import SparePartDetail from "./pages/Cars/SparePartDetail";
 import ManageSpareParts from "./pages/Mechanic/ManageSpareParts";
+import EditSparePart from "./pages/Mechanic/EditSparePart";
+import MechanicOrders from "./pages/Mechanic/MechanicOrders";
+import MyOrders from "./pages/Profile/MyOrders";
 import PaymentConfirmation from "./pages/Payment/PaymentConfirmation";
 import PaymentGateway from "./pages/Payment/PaymentGateway";
 import MechanicBooking from "./pages/Services/MechanicBooking";
@@ -53,6 +56,7 @@ function App() {
                 <Route path="login" element={<Login />} />
                 <Route path="signup" element={<SignUp />} />
                 <Route path="profile" element={<Profile />} />
+                <Route path="profile/orders" element={<MyOrders />} />
                 <Route path="inspection" element={<CarInspection />} />
                 <Route path="tow-truck" element={<TowTruck />} />
                 <Route path="spare-parts" element={<SpareParts />} />
@@ -67,6 +71,8 @@ function App() {
                 <Route path="spare-parts-list" element={<SparePartsList />} />
                 <Route path="spare-parts-details/:id" element={<SparePartDetail />} />
                 <Route path="mechanic/spare-parts" element={<ManageSpareParts />} />
+                <Route path="mechanic/edit-spare-part/:id" element={<EditSparePart />} />
+                <Route path="mechanic/orders" element={<MechanicOrders />} />
                 <Route
                   path="used-cars-list"
                   element={<UsedCarsList />}

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { User, LogOut, ChevronDown, Settings } from 'lucide-react';
+import { User, LogOut, ChevronDown, Settings, Package, ShoppingBag } from 'lucide-react';
 
 const AuthNav = () => {
   const { currentUser, logout } = useAuth();
@@ -62,8 +62,26 @@ const AuthNav = () => {
                 onClick={() => setIsDropdownOpen(false)}
               >
                 <User size={16} />
-                <span>Settings</span>
+                <span>Profile</span>
               </Link>
+              <Link
+                to="/profile/orders"
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors w-full text-left"
+                onClick={() => setIsDropdownOpen(false)}
+              >
+                <ShoppingBag size={16} />
+                <span>My Orders</span>
+              </Link>
+              {currentUser.userType === "mechanic" && (
+                <Link
+                  to="/mechanic/orders"
+                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors w-full text-left"
+                  onClick={() => setIsDropdownOpen(false)}
+                >
+                  <Package size={16} />
+                  <span>Manage Orders</span>
+                </Link>
+              )}
               <hr className="my-1 border-gray-200 dark:border-gray-700" />
               <button
                 onClick={() => {

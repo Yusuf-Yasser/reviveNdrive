@@ -1,8 +1,8 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { User, Mail, Phone, Settings, LogOut, Shield, Car, CreditCard, Trash2, Edit, Key, AlertTriangle } from 'lucide-react';
+import { User, Mail, Phone, Settings, LogOut, Shield, Car, CreditCard, Trash2, Edit, Key, AlertTriangle, ShoppingBag } from 'lucide-react';
 
 // Moved SecurityTab outside Profile to prevent input focus loss
 const SecurityTab = ({
@@ -302,8 +302,6 @@ const Profile = () => {
   }
 
   // If we reach here, currentUser and profileDetails are loaded and available.
-
-
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -668,32 +666,149 @@ const Profile = () => {
       case 'profile':
         return <ProfileTab />;
       case 'security':
-        return <SecurityTab 
-          isDarkMode={isDarkMode}
-          passwordData={passwordData}
-          handlePasswordChangeInput={handlePasswordChangeInput}
-          handleChangePasswordSubmit={handleChangePasswordSubmit}
-          passwordChangeMessage={passwordChangeMessage}
-          localLoading={localLoading}
-          handleDeleteAccountClick={handleDeleteAccountClick}
-          showDeleteConfirmModal={showDeleteConfirmModal}
-          handleConfirmDeleteAccount={handleConfirmDeleteAccount}
-          handleCancelDelete={handleCancelDelete}
-          deleteConfirmPassword={deleteConfirmPassword}
-          setDeleteConfirmPassword={setDeleteConfirmPassword}
-          deleteAccountMessage={deleteAccountMessage}
-          activeTab={activeTab}
-          KeyIcon={Key} // Pass the imported icon component
-          AlertTriangleIcon={AlertTriangle} // Pass the imported icon component
-        />;
+        return (
+          <SecurityTab
+            isDarkMode={isDarkMode}
+            passwordData={passwordData}
+            handlePasswordChangeInput={handlePasswordChangeInput}
+            handleChangePasswordSubmit={handleChangePasswordSubmit}
+            passwordChangeMessage={passwordChangeMessage}
+            localLoading={localLoading}
+            handleDeleteAccountClick={handleDeleteAccountClick}
+            showDeleteConfirmModal={showDeleteConfirmModal}
+            handleConfirmDeleteAccount={handleConfirmDeleteAccount}
+            handleCancelDelete={handleCancelDelete}
+            deleteConfirmPassword={deleteConfirmPassword}
+            setDeleteConfirmPassword={setDeleteConfirmPassword}
+            deleteAccountMessage={deleteAccountMessage}
+            activeTab={activeTab}
+            KeyIcon={Key}
+            AlertTriangleIcon={AlertTriangle}
+          />
+        );
       default:
-        return <ProfileTab />;
+        return null;
     }
   };
 
+  if (!currentUser) {
+    navigate('/login', { state: { from: '/profile' } });
+    return null;
+  }
+
+  if (localLoading && !isEditing) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">My Account</h1>
+    <div className={`container mx-auto p-6 pt-24 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {/* Sidebar with profile menu */}
+        <div className="md:col-span-1">
+          <div className={`rounded-lg shadow-md overflow-hidden ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col items-center space-y-2">
+                <div className="h-24 w-24 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                  {profileDetails?.avatar ? (
+                    <img 
+                      src={profileDetails.avatar} 
+                      alt={profileDetails.fullName} 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600">
+                      <User size={32} />
+                    </div>
+                  )}
+                </div>
+                <div className="text-center">
+                  <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+                    {profileDetails?.fullName || 'User'}
+                  </h2>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                    {profileDetails?.userType === 'mechanic' ? 'Mechanic' : 'Customer'}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <nav className="p-4">
+              <ul className="space-y-2">
+                <li>
+                  <button
+                    onClick={() => setActiveTab('profile')}
+                    className={`w-full text-left px-4 py-2 rounded-md flex items-center space-x-2 ${
+                      activeTab === 'profile' 
+                        ? isDarkMode 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-blue-100 text-blue-700' 
+                        : isDarkMode 
+                          ? 'hover:bg-gray-700' 
+                          : 'hover:bg-gray-100'
+                    } transition-colors`}
+                  >
+                    <User size={18} />
+                    <span>Profile Settings</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setActiveTab('security')}
+                    className={`w-full text-left px-4 py-2 rounded-md flex items-center space-x-2 ${
+                      activeTab === 'security' 
+                        ? isDarkMode 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-blue-100 text-blue-700' 
+                        : isDarkMode 
+                          ? 'hover:bg-gray-700' 
+                          : 'hover:bg-gray-100'
+                    } transition-colors`}
+                  >
+                    <Shield size={18} />
+                    <span>Security</span>
+                  </button>
+                </li>
+                <li>
+                  <Link
+                    to="/profile/orders"
+                    className={`w-full text-left px-4 py-2 rounded-md flex items-center space-x-2 ${
+                      isDarkMode 
+                        ? 'hover:bg-gray-700' 
+                        : 'hover:bg-gray-100'
+                    } transition-colors block`}
+                  >
+                    <ShoppingBag size={18} />
+                    <span>My Orders</span>
+                  </Link>
+                </li>
+                <li>
+                  <button
+                    onClick={handleLogout}
+                    className={`w-full text-left px-4 py-2 rounded-md flex items-center space-x-2 text-red-600 ${
+                      isDarkMode 
+                        ? 'hover:bg-gray-700' 
+                        : 'hover:bg-gray-100'
+                    } transition-colors`}
+                  >
+                    <LogOut size={18} />
+                    <span>Logout</span>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+
+        {/* Main content area */}
+        <div className="md:col-span-3">
+          <div className={`rounded-lg shadow-md p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            {renderTabContent()}
+          </div>
+        </div>
+      </div>
       
       {/* Add Car Modal */}
       {showAddCarModal && (
@@ -709,69 +824,58 @@ const Profile = () => {
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                     <h3 className={`text-lg leading-6 font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`} id="modal-title">
-                      Add New Car
+                      Add a New Car
                     </h3>
-                    <div className="mt-4">
-                      <div className="space-y-4">
+                    <div className="mt-2">
+                      <form onSubmit={(e) => { e.preventDefault(); handleAddCarSubmit(); }} className="space-y-4">
                         <div>
-                          <label htmlFor="make" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            Car Make
-                          </label>
+                          <label htmlFor="make" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Make</label>
                           <input 
                             type="text"
-                            id="make"
                             name="make"
+                            id="make"
                             value={carData.make}
                             onChange={handleCarInputChange}
-                            placeholder="e.g., Toyota, Honda"
                             className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 placeholder-gray-400'}`}
                             required 
                           />
                         </div>
                         <div>
-                          <label htmlFor="model" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            Car Model
-                          </label>
+                          <label htmlFor="model" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Model</label>
                           <input 
                             type="text"
-                            id="model"
                             name="model"
+                            id="model"
                             value={carData.model}
                             onChange={handleCarInputChange}
-                            placeholder="e.g., Corolla, Civic"
                             className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 placeholder-gray-400'}`}
                             required 
                           />
                         </div>
                         <div>
-                          <label htmlFor="year" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            Year
-                          </label>
+                          <label htmlFor="year" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Year</label>
                           <input 
                             type="number"
-                            id="year"
                             name="year"
+                            id="year"
                             value={carData.year}
                             onChange={handleCarInputChange}
                             min="1900"
                             max={new Date().getFullYear() + 1}
-                            placeholder="e.g., 2020"
                             className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 placeholder-gray-400'}`}
                             required 
                           />
                         </div>
                         <div>
-                          <label htmlFor="color" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            Color (Optional)
-                          </label>
+                          <label htmlFor="color" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Color</label>
                           <input 
                             type="text"
-                            id="color"
                             name="color"
+                            id="color"
                             value={carData.color}
                             onChange={handleCarInputChange}
-                            placeholder="e.g., Red, Blue, Silver"
                             className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 placeholder-gray-400'}`}
+                            required 
                           />
                         </div>
                         {carMessage.text && (
@@ -779,24 +883,7 @@ const Profile = () => {
                             {carMessage.text}
                           </p>
                         )}
-                        <div className="flex justify-end space-x-3 pt-4">
-                          <button
-                            type="button"
-                            onClick={() => setShowAddCarModal(false)}
-                            className={`px-4 py-2 border rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600 focus:ring-gray-500' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-indigo-500'}`}
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleAddCarSubmit}
-                            disabled={carDataLoading}
-                            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {carDataLoading ? 'Adding...' : 'Add Car'}
-                          </button>
-                        </div>
-                      </div>
+                      </form>
                     </div>
                   </div>
                 </div>
@@ -805,59 +892,6 @@ const Profile = () => {
           </div>
         </div>
       )}
-      
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Sidebar Navigation */}
-        <div className="w-full md:w-64 flex-shrink-0">
-          <div className={`rounded-xl shadow-lg overflow-hidden ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            <ul>
-              <li>
-                <button
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left ${
-                    activeTab === 'profile' 
-                      ? 'bg-blue-600 text-white' 
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  } transition-colors duration-200`}
-                  onClick={() => setActiveTab('profile')}
-                >
-                  <User size={20} />
-                  <span>Profile</span>
-                </button>
-              </li>
-
-              <li>
-                <button
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left ${
-                    activeTab === 'security' 
-                      ? 'bg-blue-600 text-white' 
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  } transition-colors duration-200`}
-                  onClick={() => setActiveTab('security')}
-                >
-                  <Shield size={20} />
-                  <span>Security</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
-                >
-                  <LogOut size={20} />
-                  <span>Sign Out</span>
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
-        
-        {/* Content Area */}
-        <div className="flex-grow">
-          <div className={`rounded-xl shadow-lg p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            {renderTabContent()}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

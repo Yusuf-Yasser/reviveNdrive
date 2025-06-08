@@ -45,6 +45,22 @@ CREATE TABLE `spare_parts` (
   FOREIGN KEY (`mechanic_id`) REFERENCES `mechanics`(`id`) ON DELETE CASCADE
 );
 
+CREATE TABLE `part_orders` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `spare_part_id` INT NOT NULL,
+  `quantity` INT NOT NULL DEFAULT 1,
+  `order_status` ENUM('pending', 'confirmed', 'shipped', 'delivered', 'canceled') NOT NULL DEFAULT 'pending',
+  `shipping_address` TEXT NOT NULL,
+  `contact_phone` VARCHAR(50) NOT NULL,
+  `total_price` DECIMAL(10, 2) NOT NULL,
+  `notes` TEXT,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`spare_part_id`) REFERENCES `spare_parts`(`id`) ON DELETE CASCADE
+);
+
 CREATE TABLE `used_cars` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `user_id` INT NOT NULL,
