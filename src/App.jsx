@@ -22,6 +22,8 @@ import Community from "./pages/Community/Community";
 import FAQ from "./pages/Community/FAQ";
 import UsedCarsList from "./pages/Cars/UsedCarsList";
 import SparePartsList from "./pages/Cars/SparePartsList";
+import SparePartDetail from "./pages/Cars/SparePartDetail";
+import ManageSpareParts from "./pages/Mechanic/ManageSpareParts";
 import PaymentConfirmation from "./pages/Payment/PaymentConfirmation";
 import PaymentGateway from "./pages/Payment/PaymentGateway";
 import MechanicBooking from "./pages/Services/MechanicBooking";
@@ -62,6 +64,8 @@ function App() {
                 <Route path="community" element={<Community />} />
                 <Route path="faq" element={<FAQ />} />
                 <Route path="spare-parts-list" element={<SparePartsList />} />
+                <Route path="spare-parts-details/:id" element={<SparePartDetail />} />
+                <Route path="mechanic/spare-parts" element={<ManageSpareParts />} />
                 <Route
                   path="used-cars-list"
                   element={<UsedCarsList />}

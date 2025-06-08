@@ -98,6 +98,7 @@ const Navbar = () => {
     if (currentUser && currentUser.userType === "mechanic") {
       return [
         { name: "List Spare Parts", path: "/spare-parts", icon: "Tool" },
+        { name: "Manage Spare Parts", path: "/mechanic/spare-parts", icon: "Settings" },
       ];
     }
 

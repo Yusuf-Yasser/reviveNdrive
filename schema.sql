@@ -28,3 +28,19 @@ CREATE TABLE `cars` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 );
+
+CREATE TABLE `spare_parts` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `mechanic_id` INT NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `description` TEXT,
+  `car_make` VARCHAR(100),
+  `car_model` VARCHAR(100),
+  `year_range` VARCHAR(100),
+  `condition` VARCHAR(50) NOT NULL,
+  `price` DECIMAL(10, 2) NOT NULL,
+  `quantity` INT NOT NULL DEFAULT 1,
+  `image_url` VARCHAR(255),
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`mechanic_id`) REFERENCES `mechanics`(`id`) ON DELETE CASCADE
+);
