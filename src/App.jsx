@@ -30,7 +30,7 @@ import MyOrders from "./pages/Profile/MyOrders";
 import PaymentConfirmation from "./pages/Payment/PaymentConfirmation";
 import PaymentGateway from "./pages/Payment/PaymentGateway";
 import MechanicBooking from "./pages/Services/MechanicBooking";
-import AdminLogin from "./pages/Auth/AdminLogin";
+import AdminLogin from "./pages/Admin/Login";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import TermsOfService from "./pages/terms/TermsOfService";
 import PrivacyPolicycar from "./pages/terms/PrivacyPol";
