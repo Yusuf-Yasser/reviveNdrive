@@ -240,18 +240,6 @@ const Navbar = () => {
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
 
-            {/* Notifications */}
-            <button
-              className={`p-2 rounded-full ${
-                isDarkMode
-                  ? "bg-gray-700 hover:bg-gray-600"
-                  : "bg-gray-100 hover:bg-gray-200"
-              } transition-all duration-200 hover:scale-110`}
-              aria-label="Notifications"
-            >
-              <Bell size={20} />
-            </button>
-
             {/* Auth Navigation */}
             <div className="hidden sm:block">
               <AuthNav />
