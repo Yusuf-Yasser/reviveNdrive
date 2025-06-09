@@ -55,10 +55,11 @@ try {
     require_once "check_auth.php";
     
     // Check if user is logged in
-    $user = checkAuth();
-    if (!$user) {
+    $auth_result = check_auth();
+    if (!$auth_result['is_authenticated']) {
         sendErrorResponse(401, "Authentication required");
     }
+    $user = $auth_result['user_data'];
     
     // Check if POST request
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {

@@ -45,7 +45,6 @@ const UsedCarDetails = () => {
   
   const handleDelete = async () => {
     setDeleteLoading(true);
-    
     try {
       const response = await fetch("http://localhost/CarService-master/api/delete_used_car.php", {
         method: "POST",
@@ -55,11 +54,18 @@ const UsedCarDetails = () => {
         },
         body: JSON.stringify({ car_id: id }),
       });
-      
-      const data = await response.json();
-      
+      let data;
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        setError("Server error: " + text);
+        setDeleteConfirmOpen(false);
+        setDeleteLoading(false);
+        return;
+      }
       if (data.success) {
-        // Redirect back to the used cars list
         navigate("/used-cars-list");
       } else {
         setError(data.message || "Failed to delete car");
@@ -139,7 +145,7 @@ const UsedCarDetails = () => {
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = "https://via.placeholder.com/800x400?text=No+Image";
+                  e.target.src = "https://placehold.co/800x400/e2e8f0/1e293b?text=No+Image";
                 }}
               />
             ) : (

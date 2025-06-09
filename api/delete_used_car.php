@@ -17,9 +17,27 @@ header("Content-Type: application/json");
 require_once "config.php";
 require_once "check_auth.php";
 
-// Check if user is logged in
-$user = checkAuth();
-if (!$user) {
+// Add a catch-all error handler at the top
+set_exception_handler(function($e) {
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "message" => "Fatal error: " . $e->getMessage()
+    ]);
+    exit;
+});
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "message" => "Fatal error: $errstr in $errfile on line $errline"
+    ]);
+    exit;
+});
+
+// Use the correct authentication function
+$user = check_auth();
+if (!$user || !$user['is_authenticated']) {
     echo json_encode(["success" => false, "message" => "Authentication required"]);
     exit;
 }
@@ -67,7 +85,7 @@ try {
         WHERE id = ? AND user_id = ?
     ");
     
-    $userId = $user["id"];
+    $userId = $user["user_data"]["id"];
     $stmt->bind_param("ii", $carId, $userId);
     $stmt->execute();
     
