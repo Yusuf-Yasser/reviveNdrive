@@ -107,28 +107,38 @@ const Navbar = () => {
     return regularUserItems;
   };
 
-  // Build navLinks conditionally based on user type
-  const navLinks = [
-    { name: "Home", path: "/" },
-    // Only show Services menu to non-mechanics
-    ...(!currentUser || currentUser.userType !== "mechanic"
-      ? [
-          {
-            name: "Services",
-            items: [
-              { name: "Find Mechanic", path: "/mechanics", icon: "Wrench" },
-              { name: "Tow Truck", path: "/tow-truck", icon: "Truck" },
-              { name: "Car Inspection", path: "/inspection", icon: "Search" },
-            ],
-          },
-        ]
-      : []),
-    {
-      name: "Cars",
-      items: getCarsMenuItems(),
-    },
-    { name: "About", path: "/about" },
-  ];
+  // Build navLinks conditionally based on user type and login state
+  let navLinks;
+  if (!currentUser) {
+    navLinks = [
+      { name: "Home", path: "/" },
+      { name: "About", path: "/about" },
+    ];
+  } else {
+    navLinks = [
+      { name: "Home", path: "/" },
+      // Only show Services menu to non-mechanics
+      ...(
+        currentUser.userType !== "mechanic"
+          ? [
+              {
+                name: "Services",
+                items: [
+                  { name: "Find Mechanic", path: "/mechanics", icon: "Wrench" },
+                  { name: "Tow Truck", path: "/tow-truck", icon: "Truck" },
+                  { name: "Car Inspection", path: "/inspection", icon: "Search" },
+                ],
+              },
+            ]
+          : []
+      ),
+      {
+        name: "Cars",
+        items: getCarsMenuItems(),
+      },
+      { name: "About", path: "/about" },
+    ];
+  }
 
   return (
     <header
