@@ -107,16 +107,22 @@ const Navbar = () => {
     return regularUserItems;
   };
 
+  // Build navLinks conditionally based on user type
   const navLinks = [
     { name: "Home", path: "/" },
-    {
-      name: "Services",
-      items: [
-        { name: "Find Mechanic", path: "/mechanics", icon: "Wrench" },
-        { name: "Tow Truck", path: "/tow-truck", icon: "Truck" },
-        { name: "Car Inspection", path: "/inspection", icon: "Search" },
-      ],
-    },
+    // Only show Services menu to non-mechanics
+    ...(!currentUser || currentUser.userType !== "mechanic"
+      ? [
+          {
+            name: "Services",
+            items: [
+              { name: "Find Mechanic", path: "/mechanics", icon: "Wrench" },
+              { name: "Tow Truck", path: "/tow-truck", icon: "Truck" },
+              { name: "Car Inspection", path: "/inspection", icon: "Search" },
+            ],
+          },
+        ]
+      : []),
     {
       name: "Cars",
       items: getCarsMenuItems(),
