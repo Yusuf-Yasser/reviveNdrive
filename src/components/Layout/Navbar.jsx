@@ -142,7 +142,7 @@ const Navbar = () => {
 
   return (
     <header
-      className={`fixed w-full top-0 z-50 ${
+      className={`fixed w-full top-0 z-40 ${
         isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"
       } shadow-md transition-colors duration-300`}
     >
