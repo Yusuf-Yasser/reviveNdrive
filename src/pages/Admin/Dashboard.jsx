@@ -5,13 +5,9 @@ import {
   Users,
   Car,
   Wrench,
-  Truck,
-  ClipboardCheck,
   DollarSign,
   BarChart,
-  Settings,
   LogOut,
-  Bell,
   Search,
   Sun,
   Moon
@@ -376,9 +372,6 @@ const Dashboard = () => {
             >
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-            <button className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-              <Bell size={20} />
-            </button>
             <button
               onClick={handleLogout}
               className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
@@ -437,45 +430,6 @@ const Dashboard = () => {
               >
                 <Wrench size={18} />
                 <span>Mechanics</span>
-              </button>
-              <button
-                onClick={() => setActiveTab("tow-trucks")}
-                className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                  activeTab === "tow-trucks"
-                    ? "bg-blue-600 text-white"
-                    : isDarkMode
-                    ? "hover:bg-gray-700"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                <Truck size={18} />
-                <span>Tow Trucks</span>
-              </button>
-              <button
-                onClick={() => setActiveTab("inspections")}
-                className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                  activeTab === "inspections"
-                    ? "bg-blue-600 text-white"
-                    : isDarkMode
-                    ? "hover:bg-gray-700"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                <ClipboardCheck size={18} />
-                <span>Inspections</span>
-              </button>
-              <button
-                onClick={() => setActiveTab("settings")}
-                className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                  activeTab === "settings"
-                    ? "bg-blue-600 text-white"
-                    : isDarkMode
-                    ? "hover:bg-gray-700"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                <Settings size={18} />
-                <span>Settings</span>
               </button>
             </div>
           </nav>
@@ -866,28 +820,6 @@ const Dashboard = () => {
                   </div>
                 </div>
               )}
-            </div>
-          )}
-
-          {/* Placeholder for other tabs */}
-          {activeTab === "tow-trucks" && (
-            <div className={`${isDarkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-lg p-6`}>
-              <h2 className="text-xl font-bold mb-4">Tow Trucks Management</h2>
-              <p>This section is under development. Please check back later.</p>
-            </div>
-          )}
-
-          {activeTab === "inspections" && (
-            <div className={`${isDarkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-lg p-6`}>
-              <h2 className="text-xl font-bold mb-4">Inspections Management</h2>
-              <p>This section is under development. Please check back later.</p>
-            </div>
-          )}
-
-          {activeTab === "settings" && (
-            <div className={`${isDarkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-lg p-6`}>
-              <h2 className="text-xl font-bold mb-4">Admin Settings</h2>
-              <p>This section is under development. Please check back later.</p>
             </div>
           )}
         </main>
