@@ -106,21 +106,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     $mechanics = [];
     while ($stmt->fetch()) {
         // Get average rating
-        $rating_query = "SELECT AVG(rating) as avg_rating FROM feedback WHERE mechanic_id = ?";
+        $rating_query = "SELECT AVG(rating) as avg_rating, COUNT(*) as rating_count FROM feedback WHERE mechanic_id = ?";
         $rating_stmt = $conn->prepare($rating_query);
-        if (!$rating_stmt) {
-            $avg_rating = 0;
-        } else {
+        $avg_rating = 0;
+        $rating_count = 0;
+        if ($rating_stmt) {
             $rating_stmt->bind_param("i", $id);
             if ($rating_stmt->execute()) {
-                $rating_stmt->bind_result($avg_rating);
+                $rating_stmt->bind_result($avg_rating, $rating_count);
                 $rating_stmt->fetch();
-            } else {
-                $avg_rating = 0;
-            }
+            } 
             $rating_stmt->close();
         }
+        
+        // Use null coalescing operator to handle NULL values
         $avg_rating = $avg_rating ?? 0;
+        $rating_count = $rating_count ?? 0;
         
         // Calculate years of experience (mock data for now based on join date)
         $join_date = new DateTime($joined);
@@ -147,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             'id' => (int)$id,
             'name' => $name,
             'specialty' => $specialty ?: 'General Repair',
-            'rating' => round((float)$avg_rating, 1) ?: rand(35, 50) / 10, // If no rating, use a random number between 3.5 and 5.0
+            'rating' => $rating_count > 0 ? round((float)$avg_rating, 1) : 3.5, // Use actual rating if exists, otherwise default to 3.5
             'experience' => $experience . ' ' . ($experience == 1 ? 'year' : 'years'),
             'status' => $status
         ];
