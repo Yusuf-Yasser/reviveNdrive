@@ -1,5 +1,6 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   Car,
   Wrench,
@@ -8,9 +9,8 @@ import {
   MessageSquare,
   Info,
 } from "lucide-react";
-import ServiceCard from "./ServiceCard";
 import TestimonialCard from "./TestimonialCard";
-import FeatureSection from "./FeatureSection";
+import FeatureSection from "./FeatureSection"; // ServiceCard removed, we'll inline the card logic
 
 const Home = () => {
   const services = [
@@ -41,6 +41,19 @@ const Home = () => {
     },
   ];
 
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  // Auth-aware navigation for feature links
+  const handleFeatureNav = (e, path) => {
+    e.preventDefault();
+    if (!currentUser) {
+      navigate("/login", { state: { from: path } });
+    } else {
+      navigate(path);
+    }
+  };
+
   return (
     <div className="space-y-16 mt-20">
       {/* Hero Section */}
@@ -56,18 +69,18 @@ const Home = () => {
               everything to keep your car in perfect condition
             </p>
             <div className="flex flex-wrap gap-4">
-              <Link
-                to="/inspection"
-                className="px-6 py-3 bg-white text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition duration-300"
-              >
-                Book Inspection
-              </Link>
-              <Link
-                to="/chatbot"
-                className="px-6 py-3 bg-transparent border-2 border-white text-white font-medium rounded-lg hover:bg-white hover:text-blue-600 transition duration-300"
-              >
-                Ask AI Mechanic
-              </Link>
+              <button
+  onClick={e => handleFeatureNav(e, "/inspection")}
+  className="px-6 py-3 bg-white text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition duration-300"
+>
+  Book Inspection
+</button>
+<button
+  onClick={e => handleFeatureNav(e, "/chatbot")}
+  className="px-6 py-3 bg-transparent border-2 border-white text-white font-medium rounded-lg hover:bg-white hover:text-blue-600 transition duration-300"
+>
+  Ask AI Mechanic
+</button>
             </div>
           </div>
           <div className="w-full md:w-1/2 order-first md:order-last">
@@ -89,10 +102,23 @@ const Home = () => {
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {services.map((service, index) => (
-            <ServiceCard key={index} service={service} />
-          ))}
-        </div>
+  {services.map((service, index) => (
+    <div
+      key={index}
+      className="rounded-xl shadow-lg bg-white dark:bg-gray-800 p-6 flex flex-col items-center hover:shadow-xl transition-shadow"
+    >
+      <div className="mb-4">{service.icon}</div>
+      <h3 className="text-lg font-semibold mb-2">{service.title}</h3>
+      <p className="text-gray-600 dark:text-gray-300 mb-4 text-center">{service.description}</p>
+      <button
+        className="mt-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        onClick={e => handleFeatureNav(e, service.link)}
+      >
+        Explore
+      </button>
+    </div>
+  ))}
+</div> 
       </section>
 
       {/* Feature Highlight */}
@@ -159,48 +185,17 @@ const Home = () => {
                 <span>Book services directly through the chat</span>
               </li>
             </ul>
-            <Link
-              to="/chatbot"
-              className="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-300"
-            >
-              Try AI Mechanic Now
-            </Link>
+            <button
+  onClick={e => handleFeatureNav(e, "/chatbot")}
+  className="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-300"
+>
+  Try AI Mechanic Now
+</button>
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="text-center space-y-8">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold mb-4">What Our Customers Say</h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-8">
-            Don't just take our word for it - hear from our satisfied customers
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <TestimonialCard
-            name="John Smith"
-            role="Toyota Owner"
-            image="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-            testimonial="The AI mechanic accurately diagnosed my car's issue and saved me from an expensive repair. Highly recommended!"
-            rating={5}
-          />
-          <TestimonialCard
-            name="Sarah Johnson"
-            role="BMW Driver"
-            image="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-            testimonial="The tow truck arrived within 15 minutes of my request. The driver was professional and got me to the nearest garage quickly."
-            rating={4}
-          />
-          <TestimonialCard
-            name="Michael Chen"
-            role="Honda Enthusiast"
-            image="https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-            testimonial="Found exactly the spare parts I needed for my vintage Honda at a great price. Delivery was quick and parts were genuine."
-            rating={5}
-          />
-        </div>
-      </section>
+
 
       {/* CTA Section */}
       <section className="bg-blue-600 text-white rounded-2xl p-8 md:p-12 text-center">

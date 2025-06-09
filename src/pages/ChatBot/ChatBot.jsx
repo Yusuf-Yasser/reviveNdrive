@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useContext } from "react";
 import { ThemeContext } from "../../contexts/ThemeContext";
 import { Send, Car, Wrench, Clock, Truck, Info } from "lucide-react";
 import axios from "axios";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const SYSTEM_PROMPT = `You are an expert automotive mechanic AI assistant. You have deep knowledge of car mechanics, diagnostics, maintenance, and repairs. Your role is to:
 1. Help diagnose car problems based on symptoms
@@ -14,6 +16,19 @@ Keep responses focused on automotive topics. If you're unsure about something, e
 
 const ChatBot = () => {
   const { isDarkMode } = useContext(ThemeContext);
+  const { currentUser, isLoading: authIsLoading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!authIsLoading && !currentUser) {
+      navigate("/login", { state: { from: "/chatbot" } });
+    }
+  }, [authIsLoading, currentUser, navigate]);
+
+  if (authIsLoading && !currentUser) {
+    return <div className="flex justify-center items-center h-screen">Loading session...</div>;
+  }
+
   const [messages, setMessages] = useState([
     {
       id: 1,
