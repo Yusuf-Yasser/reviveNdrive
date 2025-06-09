@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { Wrench } from "lucide-react";
+import { Wrench, Star } from "lucide-react";
 
 const MechanicOrders = () => {
   const { currentUser } = useAuth();
@@ -13,6 +13,7 @@ const MechanicOrders = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState(null);
   const [actionSuccess, setActionSuccess] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   // Check if user is logged in and is a mechanic
   useEffect(() => {
@@ -117,6 +118,14 @@ const MechanicOrders = () => {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
   };
 
+  const handleViewFeedback = (order) => {
+    setSelectedOrder(order);
+  };
+
+  const closeFeedbackModal = () => {
+    setSelectedOrder(null);
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6 pt-24">
       <div className="flex justify-between items-center mb-6">
@@ -217,6 +226,15 @@ const MechanicOrders = () => {
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClasses(order.orderStatus)}`}>
                         {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
                       </span>
+                      {order.hasFeedback && (
+                        <button
+                          onClick={() => handleViewFeedback(order)}
+                          className="ml-2 text-yellow-500 hover:text-yellow-600"
+                          title="View Feedback"
+                        >
+                          <Star size={16} fill="currentColor" />
+                        </button>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(order.createdAt)}
@@ -249,7 +267,7 @@ const MechanicOrders = () => {
                               disabled={actionLoading}
                               className="text-purple-600 hover:text-purple-900"
                             >
-                              Mark Shipped
+                              Mark as Shipped
                             </button>
                           )}
                           
@@ -259,7 +277,7 @@ const MechanicOrders = () => {
                               disabled={actionLoading}
                               className="text-green-600 hover:text-green-900"
                             >
-                              Mark Delivered
+                              Mark as Delivered
                             </button>
                           )}
                         </div>
@@ -269,6 +287,54 @@ const MechanicOrders = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Feedback Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-semibold">Customer Feedback</h2>
+                <button
+                  onClick={closeFeedbackModal}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div>
+                <div className="flex items-center mb-2">
+                  <div className="flex">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        size={20}
+                        className={`${
+                          star <= selectedOrder.feedback.rating
+                            ? "text-yellow-400 fill-yellow-400"
+                            : "text-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="ml-2 text-gray-600">
+                    ({selectedOrder.feedback.rating} out of 5)
+                  </span>
+                </div>
+
+                <p className="text-gray-700 dark:text-gray-300 mt-2">
+                  {selectedOrder.feedback.comment}
+                </p>
+
+                <div className="mt-4 text-sm text-gray-500">
+                  Submitted on {formatDate(selectedOrder.feedback.createdAt)}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -77,13 +77,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             u.id as user_id,
             u.fullName as user_name,
             u.email as user_email,
-            u.phone as user_phone
+            u.phone as user_phone,
+            f.id as feedback_id,
+            f.rating as feedback_rating,
+            f.comment as feedback_comment,
+            f.created_at as feedback_created_at,
+            CASE WHEN f.id IS NOT NULL THEN 1 ELSE 0 END as has_feedback
         FROM 
             part_orders po
         JOIN 
             spare_parts sp ON po.spare_part_id = sp.id
         JOIN 
             users u ON po.user_id = u.id
+        LEFT JOIN
+            feedback f ON po.id = f.part_order_id
         WHERE 
             sp.mechanic_id = ? 
             $status_filter
@@ -124,7 +131,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                 'name' => $row['user_name'],
                 'email' => $row['user_email'],
                 'phone' => $row['user_phone']
-            ]
+            ],
+            'hasFeedback' => $row['has_feedback'] == 1,
+            'feedback' => $row['feedback_id'] ? [
+                'id' => $row['feedback_id'],
+                'rating' => $row['feedback_rating'],
+                'comment' => $row['feedback_comment'],
+                'createdAt' => $row['feedback_created_at']
+            ] : null
         ];
     }
     

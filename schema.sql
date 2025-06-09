@@ -77,3 +77,16 @@ CREATE TABLE `used_cars` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 );
+
+CREATE TABLE `feedback` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `part_order_id` INT NOT NULL UNIQUE,
+  `user_id` INT NOT NULL,
+  `mechanic_id` INT NOT NULL,
+  `rating` INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  `comment` TEXT,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`part_order_id`) REFERENCES `part_orders`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`mechanic_id`) REFERENCES `mechanics`(`id`) ON DELETE CASCADE
+);

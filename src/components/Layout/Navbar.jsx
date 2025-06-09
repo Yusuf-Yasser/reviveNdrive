@@ -122,7 +122,6 @@ const Navbar = () => {
       items: getCarsMenuItems(),
     },
     { name: "About", path: "/about" },
-    { name: "Feedback", path: "/feedback" },
   ];
 
   return (

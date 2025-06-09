@@ -13,7 +13,6 @@ import TowTruck from "./pages/Services/TowTruck";
 import SpareParts from "./pages/Services/SpareParts";
 import Mechanics from "./pages/Services/Mechanics";
 import UsedCars from "./pages/UsedCars/UsedCars";
-import Feedback from "./pages/Feedback/Feedback";
 import ChatBot from "./pages/ChatBot/ChatBot";
 import About from "./pages/About/About";
 import Contact from "./pages/Contact/Contact";
@@ -60,7 +59,6 @@ function App() {
                 <Route path="inspection" element={<CarInspection />} />
                 <Route path="tow-truck" element={<TowTruck />} />
                 <Route path="spare-parts" element={<SpareParts />} />
-                <Route path="feedback" element={<Feedback />} />
                 <Route path="mechanics" element={<Mechanics />} />
                 <Route path="used-cars" element={<UsedCars />} />
                 <Route path="chatbot" element={<ChatBot />} />

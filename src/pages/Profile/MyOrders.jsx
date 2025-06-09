@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import FeedbackModal from "../../components/Feedback/FeedbackModal";
 
 const MyOrders = () => {
   const { currentUser, isLoading: authLoading } = useAuth();
@@ -9,6 +10,11 @@ const MyOrders = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState("");
+  const [feedbackModalData, setFeedbackModalData] = useState({
+    isOpen: false,
+    orderId: null,
+    mechanicId: null
+  });
 
   // Check if user is logged in, but only after auth is done loading
   useEffect(() => {
@@ -81,6 +87,53 @@ const MyOrders = () => {
 
   const handleViewPartDetails = (partId) => {
     navigate(`/spare-parts-details/${partId}`);
+  };
+
+  const handleFeedbackSubmit = async (feedbackData) => {
+    try {
+      const response = await fetch("http://localhost/CarService-master/api/submit_feedback.php", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          orderId: feedbackData.orderId,
+          rating: feedbackData.rating,
+          comment: feedbackData.comment
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Refresh orders to update UI
+        fetchUserOrders();
+        return true;
+      } else {
+        throw new Error(data.message || "Failed to submit feedback");
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      alert(error.message);
+      return false;
+    }
+  };
+
+  const openFeedbackModal = (orderId, mechanicId) => {
+    setFeedbackModalData({
+      isOpen: true,
+      orderId,
+      mechanicId
+    });
+  };
+
+  const closeFeedbackModal = () => {
+    setFeedbackModalData({
+      isOpen: false,
+      orderId: null,
+      mechanicId: null
+    });
   };
 
   // Show loading spinner while auth is being checked
@@ -213,6 +266,23 @@ const MyOrders = () => {
                       <p className="text-sm text-gray-700">{order.mechanic.location || 'Location not specified'}</p>
                       <p className="text-sm text-gray-700">Email: {order.mechanic.email}</p>
                       <p className="text-sm text-gray-700">Phone: {order.mechanic.phone || 'Not provided'}</p>
+                      
+                      {/* Feedback Button - Only show for delivered orders without feedback */}
+                      {order.orderStatus === 'delivered' && !order.hasFeedback && (
+                        <button
+                          onClick={() => openFeedbackModal(order.id, order.mechanic.id)}
+                          className="mt-3 bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-4 rounded-lg transition duration-300"
+                        >
+                          Leave Feedback
+                        </button>
+                      )}
+                      
+                      {/* Show if feedback was already given */}
+                      {order.hasFeedback && (
+                        <p className="mt-3 text-sm text-green-600">
+                          ✓ Feedback submitted
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -221,6 +291,24 @@ const MyOrders = () => {
           ))}
         </div>
       )}
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        isOpen={feedbackModalData.isOpen}
+        onClose={closeFeedbackModal}
+        onSubmit={async (data) => {
+          const success = await handleFeedbackSubmit({
+            ...data,
+            orderId: feedbackModalData.orderId,
+            mechanicId: feedbackModalData.mechanicId
+          });
+          if (success) {
+            closeFeedbackModal();
+          }
+        }}
+        orderId={feedbackModalData.orderId}
+        mechanicId={feedbackModalData.mechanicId}
+      />
     </div>
   );
 };
