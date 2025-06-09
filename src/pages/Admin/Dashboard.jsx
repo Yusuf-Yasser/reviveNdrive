@@ -574,9 +574,6 @@ const Dashboard = () => {
                       <Search size={18} />
                     </button>
                   </form>
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
-                    <span>Add User</span>
-                  </button>
                 </div>
               </div>
               
@@ -704,9 +701,6 @@ const Dashboard = () => {
                       <Search size={18} />
                     </button>
                   </form>
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
-                    <span>Add Mechanic</span>
-                  </button>
                 </div>
               </div>
               
