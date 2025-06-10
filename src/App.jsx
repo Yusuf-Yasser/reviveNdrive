@@ -35,6 +35,7 @@ import AdminDashboard from "./pages/Admin/Dashboard";
 import TermsOfService from "./pages/terms/TermsOfService";
 import PrivacyPolicycar from "./pages/terms/PrivacyPol";
 import Cookcar from "./pages/terms/Cook";
+import MechanicAppointments from "./pages/Mechanic/MechanicAppointments";
 
 function App() {
   const [isDarkMode, setIsDarkMode] = React.useState(false);
@@ -71,6 +72,7 @@ function App() {
                 <Route path="mechanic/spare-parts" element={<ManageSpareParts />} />
                 <Route path="mechanic/edit-spare-part/:id" element={<EditSparePart />} />
                 <Route path="mechanic/orders" element={<MechanicOrders />} />
+                <Route path="mechanic/appointments" element={<MechanicAppointments />} />
                 <Route
                   path="used-cars-list"
                   element={<UsedCarsList />}

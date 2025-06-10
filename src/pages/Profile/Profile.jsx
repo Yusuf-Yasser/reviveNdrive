@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { User, Mail, Phone, Settings, LogOut, Shield, Car, CreditCard, Trash2, Edit, Key, AlertTriangle, ShoppingBag } from 'lucide-react';
+import { User, Mail, Phone, Settings, LogOut, Shield, Car, CreditCard, Trash2, Edit, Key, AlertTriangle, ShoppingBag, Calendar } from 'lucide-react';
 
 // Moved SecurityTab outside Profile to prevent input focus loss
 const SecurityTab = ({
@@ -171,6 +171,158 @@ const SecurityTab = ({
   );
 };
 
+// AppointmentsTab component
+const AppointmentsTab = ({
+  isDarkMode,
+  appointments,
+  appointmentsLoading,
+  updateAppointmentStatus
+}) => {
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'confirmed':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      case 'in_progress':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
+      case 'completed':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString();
+  };
+
+  const formatPrice = (price) => {
+    return `$${parseFloat(price).toFixed(2)}`;
+  };
+
+  if (appointmentsLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">My Appointments</h3>
+        <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          {appointments.length} appointment{appointments.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+
+      {appointments.length === 0 ? (
+        <div className={`text-center py-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <Calendar size={48} className="mx-auto mb-4 opacity-50" />
+          <p className="text-lg mb-2">No appointments found</p>
+          <p className="text-sm">Book your first mechanic service to see appointments here.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {appointments.map((appointment) => (
+            <div
+              key={appointment.id}
+              className={`p-6 rounded-xl shadow border ${
+                isDarkMode 
+                  ? 'bg-gray-700 border-gray-600' 
+                  : 'bg-white border-gray-200'
+              }`}
+            >
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h4 className="text-lg font-semibold">
+                      {appointment.service_type}
+                    </h4>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(appointment.status)}`}>
+                      {appointment.status.replace('_', ' ')}
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Mechanic: {appointment.mechanic_name}
+                      </p>
+                      <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
+                        Phone: {appointment.customer_phone}
+                      </p>
+                      <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
+                        Address: {appointment.customer_address}
+                      </p>
+                    </div>
+                    <div>
+                      <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
+                        Scheduled: {formatDate(appointment.scheduled_date)}
+                      </p>
+                      <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
+                        Created: {formatDate(appointment.created_at)}
+                      </p>
+                      {appointment.estimated_price && (
+                        <p className={`font-medium ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
+                          Price: {formatPrice(appointment.estimated_price)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {appointment.description && (
+                    <div className="mt-3">
+                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <span className="font-medium">Description:</span> {appointment.description}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2 lg:w-auto">
+                  {appointment.status === 'pending' && (
+                    <button
+                      onClick={() => updateAppointmentStatus(appointment.id, 'cancelled')}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                  
+                  {appointment.status === 'completed' && !appointment.payment_status && (
+                    <span className={`px-3 py-1 rounded-full text-xs text-center ${
+                      isDarkMode 
+                        ? 'bg-orange-900 text-orange-300' 
+                        : 'bg-orange-100 text-orange-800'
+                    }`}>
+                      Payment Pending
+                    </span>
+                  )}
+                  
+                  {appointment.payment_status && (
+                    <span className={`px-3 py-1 rounded-full text-xs text-center ${
+                      isDarkMode 
+                        ? 'bg-green-900 text-green-300' 
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      Paid
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Profile = () => {
   // Memories for dropdowns
   const egyptianGovernorates = ["Alexandria", "Aswan", "Asyut", "Beheira", "Beni Suef", "Cairo", "Dakahlia", "Damietta", "Faiyum", "Gharbia", "Giza", "Ismailia", "Kafr El Sheikh", "Luxor", "Matrouh", "Minya", "Monufia", "New Valley", "North Sinai", "Port Said", "Qalyubia", "Qena", "Red Sea", "Sharqia", "Sohag", "South Sinai", "Suez"];
@@ -178,8 +330,9 @@ const Profile = () => {
 
   const { isDarkMode } = useContext(ThemeContext);
   const { currentUser, logout, getProfileData, updateProfileData, changePassword, deleteAccount, addCar, deleteCar, isLoading: authIsLoading } = useAuth();
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('profile');
+  const navigate = useNavigate();  const [activeTab, setActiveTab] = useState('profile');
+  const [appointments, setAppointments] = useState([]);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(false);
   const [profileDetails, setProfileDetails] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
@@ -271,8 +424,69 @@ const Profile = () => {
       setDeleteAccountMessage({ type: '', text: '' });
       // Optionally, reset localLoading if it's specific to security tab operations
       // and not general profile loading, but current setup seems fine.
+    }  }, [activeTab]);
+
+  // Fetch user's appointments
+  const fetchAppointments = async () => {
+    if (!currentUser?.id) return;
+    
+    setAppointmentsLoading(true);
+    try {
+      const response = await fetch(
+        `http://localhost/CarService-master/api/get_user_appointments.php?user_id=${currentUser.id}`,
+        {
+          method: 'GET',
+          credentials: 'include', // Ensure cookies/session are sent
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      const data = await response.json();
+      if (data.success) {
+        setAppointments(data.appointments || []);
+      } else {
+        console.error('Failed to fetch appointments:', data.error);
+      }
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+    } finally {
+      setAppointmentsLoading(false);
     }
-  }, [activeTab]);
+  };
+
+  // Handle appointment status update
+  const updateAppointmentStatus = async (appointmentId, status) => {
+    try {
+      const response = await fetch('http://localhost/CarService-master/api/update_appointment_status.php', {
+        method: 'POST',
+        credentials: 'include', // Ensure cookies/session are sent
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          appointment_id: appointmentId,
+          status: status
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        // Refresh appointments
+        fetchAppointments();
+      } else {
+        console.error('Failed to update appointment status:', data.error);
+      }
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
+    }
+  };
+
+  // Fetch appointments when switching to appointments tab
+  useEffect(() => {
+    if (activeTab === 'appointments' && currentUser?.id) {
+      fetchAppointments();
+    }
+  }, [activeTab, currentUser?.id]);
 
   const handleLogout = () => {
     logout();
@@ -660,8 +874,7 @@ const Profile = () => {
         )}
       </form>
     );
-  };
-  const renderTabContent = () => {
+  };  const renderTabContent = () => {
     switch (activeTab) {
       case 'profile':
         return <ProfileTab />;
@@ -684,6 +897,15 @@ const Profile = () => {
             activeTab={activeTab}
             KeyIcon={Key}
             AlertTriangleIcon={AlertTriangle}
+          />
+        );
+      case 'appointments':
+        return (
+          <AppointmentsTab
+            isDarkMode={isDarkMode}
+            appointments={appointments}
+            appointmentsLoading={appointmentsLoading}
+            updateAppointmentStatus={updateAppointmentStatus}
           />
         );
       default:
@@ -769,6 +991,22 @@ const Profile = () => {
                   >
                     <Shield size={18} />
                     <span>Security</span>
+                  </button>
+                </li>                <li>
+                  <button
+                    onClick={() => setActiveTab('appointments')}
+                    className={`w-full text-left px-4 py-2 rounded-md flex items-center space-x-2 ${
+                      activeTab === 'appointments' 
+                        ? isDarkMode 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-blue-100 text-blue-700' 
+                        : isDarkMode 
+                          ? 'hover:bg-gray-700' 
+                          : 'hover:bg-gray-100'
+                    } transition-colors`}
+                  >
+                    <Calendar size={18} />
+                    <span>My Appointments</span>
                   </button>
                 </li>
                 <li>

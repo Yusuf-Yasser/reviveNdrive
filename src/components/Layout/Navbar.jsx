@@ -99,6 +99,7 @@ const Navbar = () => {
       return [
         { name: "List Spare Parts", path: "/spare-parts", icon: "Tool" },
         { name: "Manage Spare Parts", path: "/mechanic/spare-parts", icon: "Settings" },
+        { name: "View Appointments", path: "/mechanic/appointments", icon: "Calendar" },
         { name: "View Spare Parts", path: "/spare-parts-list", icon: "tool" },
       ];
     }

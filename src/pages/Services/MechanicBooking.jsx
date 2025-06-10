@@ -1,7 +1,8 @@
 import React, { useState, useContext } from "react";
 import { ThemeContext } from "../../contexts/ThemeContext";
 import { usePayment } from "../../contexts/PaymentContext";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Calendar,
   Clock,
@@ -15,8 +16,13 @@ import {
 const MechanicBooking = () => {
   const { isDarkMode } = useContext(ThemeContext);
   const { initializePayment } = usePayment();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [appointmentId, setAppointmentId] = useState(null);
   const [formData, setFormData] = useState({
     service: "",
     carMake: "",
@@ -25,11 +31,15 @@ const MechanicBooking = () => {
     preferredDate: "",
     preferredTime: "",
     description: "",
-    name: "",
-    phone: "",
-    email: "",
+    name: currentUser?.fullName || "",
+    phone: currentUser?.phone || "",
+    email: currentUser?.email || "",
     address: "",
   });
+
+  // Extract mechanicId from query string
+  const searchParams = new URLSearchParams(location.search);
+  const mechanicId = searchParams.get("mechanicId");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,7 +51,64 @@ const MechanicBooking = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Check if user is logged in
+    if (!currentUser) {
+      navigate("/login", { state: { from: "/mechanic-booking" } });
+      return;
+    }
+    
     setStep(step + 1);
+  };
+
+  const createAppointment = async (serviceDetails, paymentStatus = 'pending') => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const appointmentData = {
+        serviceType: serviceDetails.name,
+        serviceDescription: formData.description,
+        appointmentDate: formData.preferredDate,
+        appointmentTime: formData.preferredTime,
+        carMake: formData.carMake,
+        carModel: formData.carModel,
+        carYear: parseInt(formData.carYear),
+        customerName: formData.name,
+        customerPhone: formData.phone,
+        customerEmail: formData.email,
+        customerAddress: formData.address,
+        servicePrice: serviceDetails.price,
+        serviceFee: serviceDetails.serviceFee,
+        totalAmount: serviceDetails.totalAmount,
+        notes: formData.description,
+        paymentStatus: paymentStatus,
+        mechanicId: mechanicId ? parseInt(mechanicId) : null // Pass mechanicId if present
+      };
+
+      const response = await fetch('http://localhost/CarService-master/api/create_appointment.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(appointmentData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setAppointmentId(data.appointment_id);
+        return data.appointment_id;
+      } else {
+        throw new Error(data.message || 'Failed to create appointment');
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to create appointment');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const services = [
@@ -364,14 +431,18 @@ const MechanicBooking = () => {
       </button>
     </div>
   );
-
   const ReviewStep = () => {
     const selectedService = services.find((s) => s.id === formData.service);
 
-    const handlePayment = () => {
+    const handlePayment = async () => {
       if (!selectedService) {
         alert("Please select a service");
         setStep(1);
+        return;
+      }
+
+      if (!currentUser) {
+        navigate("/login", { state: { from: "/mechanic-booking" } });
         return;
       }
 
@@ -400,12 +471,29 @@ const MechanicBooking = () => {
         }
       };
 
-      // Initialize payment in the context which will be used by the PaymentGateway and PaymentConfirmation
-      initializePayment(serviceDetails);
-      
-      // Navigate to payment gateway to process the payment
-      // After successful payment, user will be redirected to payment/confirmation page
-      navigate("/payment");
+      try {
+        // Create appointment first (with pending payment status)
+        const appointmentId = await createAppointment(serviceDetails, 'pending');
+        
+        // Add appointment ID to service details for payment context
+        serviceDetails.appointmentId = appointmentId;
+        
+        // Initialize payment in the context
+        initializePayment(serviceDetails);
+        
+        // Navigate to payment gateway
+        navigate("/payment");
+      } catch (err) {
+        console.error('Error creating appointment:', err);
+        // If appointment creation fails, still allow user to try payment
+        // but show the error
+        if (error) {
+          alert(`Error: ${error}. You can still proceed with payment.`);
+        }
+        
+        initializePayment(serviceDetails);
+        navigate("/payment");
+      }
     };
 
     return (
@@ -579,9 +667,27 @@ const MechanicBooking = () => {
       </div>
     );
   };
-
   return (
     <div className="max-w-2xl mx-auto">
+      {/* Error Message */}
+      {error && (
+        <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
+
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg">
+            <div className="flex items-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
+              <span>Creating appointment...</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div
         className={`rounded-xl shadow-lg p-6 ${
           isDarkMode ? "bg-gray-800" : "bg-white"

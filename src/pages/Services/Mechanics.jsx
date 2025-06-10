@@ -271,7 +271,7 @@ const Mechanics = () => {
                 </div>
 
                 <div className="flex gap-2">
-                  <Link to={mechanic.bookingLink} className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-center">
+                  <Link to={`/mechanic-booking?mechanicId=${mechanic.id}`} className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-center">
                     Book Appointment
                   </Link>
                   {mechanic.phone && (

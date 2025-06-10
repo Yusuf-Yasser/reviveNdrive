@@ -90,3 +90,30 @@ CREATE TABLE `feedback` (
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`mechanic_id`) REFERENCES `mechanics`(`id`) ON DELETE CASCADE
 );
+
+CREATE TABLE `appointments` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `mechanic_id` INT NULL,
+  `service_type` VARCHAR(100) NOT NULL,
+  `service_description` TEXT,
+  `appointment_date` DATE NOT NULL,
+  `appointment_time` TIME NOT NULL,
+  `car_make` VARCHAR(100) NOT NULL,
+  `car_model` VARCHAR(100) NOT NULL,
+  `car_year` INT NOT NULL,
+  `customer_name` VARCHAR(255) NOT NULL,
+  `customer_phone` VARCHAR(50) NOT NULL,
+  `customer_email` VARCHAR(255) NOT NULL,
+  `customer_address` TEXT NOT NULL,
+  `service_price` DECIMAL(10, 2) NOT NULL,
+  `service_fee` DECIMAL(10, 2) DEFAULT 5.99,
+  `total_amount` DECIMAL(10, 2) NOT NULL,
+  `status` ENUM('pending', 'confirmed', 'in_progress', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
+  `payment_status` ENUM('pending', 'paid', 'refunded') NOT NULL DEFAULT 'pending',
+  `notes` TEXT,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`mechanic_id`) REFERENCES `mechanics`(`id`) ON DELETE SET NULL
+);
